@@ -14,7 +14,7 @@ jobs:
   refresh:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
       - name: Refresh vendored IEEE OUI snapshot
         run: ./scripts/update-oui.sh
       - name: Sanity-check the build with new data
