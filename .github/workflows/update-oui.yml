@@ -21,7 +21,7 @@ jobs:
         uses: dtolnay/rust-toolchain@stable
       - run: cargo test --all-features
       - name: Open a pull request if the data changed
-        uses: peter-evans/create-pull-request@v6
+        uses: peter-evans/create-pull-request@v8
         with:
           commit-message: "data: refresh IEEE OUI snapshot"
           title: "data: refresh IEEE OUI snapshot"
