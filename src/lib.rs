@@ -2,4 +2,4 @@
 
 mod mac;
 
-pub use mac::{format_oui, parse_oui};
+pub use mac::{format_oui, parse_oui, ParseMacError};
