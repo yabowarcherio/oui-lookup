@@ -16,3 +16,12 @@ pub fn parse_oui(input: &str) -> Option<u32> {
     if digits < 6 { return None; }
     Some(oui)
 }
+
+pub fn format_oui(oui: u32) -> String {
+    format!(
+        "{:02X}:{:02X}:{:02X}",
+        (oui >> 16) & 0xFF,
+        (oui >> 8) & 0xFF,
+        oui & 0xFF
+    )
+}
