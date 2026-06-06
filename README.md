@@ -1,0 +1,149 @@
+# oui-lookup
+
+[![CI](https://github.com/yabowarcherio/oui-lookup/actions/workflows/ci.yml/badge.svg)](https://github.com/yabowarcherio/oui-lookup/actions/workflows/ci.yml)
+[![Release](https://img.shields.io/github/v/release/yabowarcherio/oui-lookup?sort=semver)](https://github.com/yabowarcherio/oui-lookup/releases)
+[![license](https://img.shields.io/badge/license-MIT%20OR%20Apache--2.0-blue.svg)](#license)
+[![MSRV](https://img.shields.io/badge/MSRV-1.85-blue.svg)](Cargo.toml)
+
+**Fast, offline MAC-address vendor (OUI) lookup — as a Rust library and a CLI.**
+
+The entire IEEE MA-L registry is compiled straight into the binary, so there
+are **no network calls, no cache files, and no runtime dependencies**. A lookup
+is an allocation-free binary search over data borrowed directly from the
+embedded table.
+
+```console
+$ oui-lookup a4:83:e7:9c:1d:42
+A4:83:E7             Apple, Inc.
+
+$ oui-lookup --json 28:cf:e9 3c:5a:b4
+[
+  { "input": "28:cf:e9", "prefix": "28:CF:E9", "vendor": "Apple, Inc." },
+  { "input": "3c:5a:b4", "prefix": "3C:5A:B4", "vendor": "Google, Inc." }
+]
+```
+
+## Why another OUI tool?
+
+- **Truly offline.** The database ships *inside* the binary. No first-run
+  download, no `~/.cache` directory, no failure when you're on an air-gapped
+  network. Drop the single ~2 MB executable anywhere and it just works.
+- **Tiny and fast.** Lookups are a binary search over a packed blob — typically
+  tens of nanoseconds. No hash map to build, nothing to allocate.
+- **Library *and* CLI.** Use it from the command line, or depend on the crate
+  and call `oui_lookup::lookup()` directly. (It's the vendor-resolution core of
+  the [NetScan](https://github.com/yabowarcherio) network scanner.)
+- **Reproducible builds.** The IEEE data is vendored into the repository, so
+  `cargo build` never touches the network and CI is deterministic.
+
+## Install
+
+### As a CLI
+
+Grab a prebuilt binary from the [releases page](https://github.com/yabowarcherio/oui-lookup/releases),
+or build from source:
+
+```sh
+cargo install --git https://github.com/yabowarcherio/oui-lookup
+```
+
+### As a library
+
+Add it from git:
+
+```toml
+[dependencies]
+oui-lookup = { git = "https://github.com/yabowarcherio/oui-lookup", default-features = false }
+```
+
+`default-features = false` drops the CLI's dependencies (clap, serde_json) and
+gives you a lean library. Re-enable serde derives on the `Vendor` type with
+`features = ["serde"]`.
+
+## Usage (CLI)
+
+```text
+oui-lookup [OPTIONS] <MAC>...
+
+Arguments:
+  <MAC>...  MAC addresses or OUI prefixes to look up. Use `-` to read from stdin.
+
+Options:
+      --json   Emit results as a JSON array
+      --quiet  Suppress "(unknown)" lines for unmatched addresses
+  -h, --help   Print help
+  -V, --version
+```
+
+Any common MAC spelling is accepted — only the first three octets matter:
+
+```sh
+oui-lookup 00:11:22:33:44:55     # colons
+oui-lookup 00-11-22-33-44-55     # hyphens
+oui-lookup 0011.2233.4455        # Cisco dotted
+oui-lookup 001122334455          # bare
+oui-lookup 00:11:22              # just the OUI
+```
+
+Read many addresses from stdin:
+
+```sh
+arp -a | grep -oE '([0-9a-f]{2}:){5}[0-9a-f]{2}' | oui-lookup -
+```
+
+**Exit codes:** `0` all matched · `1` parsed but at least one unknown vendor ·
+`2` at least one input failed to parse.
+
+## Usage (library)
+
+```rust
+use oui_lookup::{lookup, lookup_vendor, try_lookup};
+
+// Simplest form: Option<&'static str>, borrowed from the embedded table.
+assert_eq!(lookup("a4:83:e7:00:00:00"), Some("Apple, Inc."));
+
+// Distinguish "unparseable" from "parsed but unknown".
+assert!(try_lookup("not-a-mac").is_err());
+assert_eq!(try_lookup("ff:ff:ff:00:00:00"), Ok(None));
+
+// Owned prefix + name, ready to serialize.
+let v = lookup_vendor("28:cf:e9:11:22:33").unwrap();
+assert_eq!(v.prefix, "28:CF:E9");
+```
+
+## How the data is embedded
+
+1. `data/oui.tsv.gz` — a gzip-compressed `PREFIX\tVendor` snapshot of the IEEE
+   MA-L registry, committed to the repo.
+2. [`build.rs`](build.rs) decompresses it at compile time and re-packs it into a
+   sorted binary blob (`magic | count | (prefix, offset)[] | string-pool`).
+3. The blob is `include_bytes!`-d into the crate and binary-searched at runtime.
+
+This keeps `cargo build` fully offline. To refresh the snapshot from IEEE, run
+[`scripts/update-oui.sh`](scripts/update-oui.sh) and commit the result. A
+scheduled GitHub Actions workflow does this automatically and opens a PR.
+
+> **Scope:** only the MA-L (`/24`) registry is embedded today. Finer MA-M
+> (`/28`) and MA-S (`/36`) sub-allocations are not yet resolved.
+
+## Contributing
+
+Issues and PRs are welcome — see [CONTRIBUTING.md](CONTRIBUTING.md).
+
+## License
+
+Dual-licensed under either of
+
+- Apache License, Version 2.0 ([LICENSE-APACHE](LICENSE-APACHE))
+- MIT license ([LICENSE-MIT](LICENSE-MIT))
+
+at your option.
+
+The embedded OUI data is published by the IEEE Registration Authority and is
+redistributed here for convenience; it is not covered by the licenses above.
+
+### Contribution
+
+Unless you explicitly state otherwise, any contribution intentionally submitted
+for inclusion in the work by you, as defined in the Apache-2.0 license, shall be
+dual-licensed as above, without any additional terms or conditions.
