@@ -1,0 +1,33 @@
+name: Update OUI database
+
+on:
+  schedule:
+    # Run on the 1st of every month at 06:00 UTC.
+    - cron: "0 6 1 * *"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Refresh vendored IEEE OUI snapshot
+        run: ./scripts/update-oui.sh
+      - name: Sanity-check the build with new data
+        uses: dtolnay/rust-toolchain@stable
+      - run: cargo test --all-features
+      - name: Open a pull request if the data changed
+        uses: peter-evans/create-pull-request@v6
+        with:
+          commit-message: "data: refresh IEEE OUI snapshot"
+          title: "data: refresh IEEE OUI snapshot"
+          body: |
+            Automated monthly refresh of `data/oui.tsv.gz` from the IEEE
+            registry. CI must pass before merging.
+          branch: chore/update-oui
+          add-paths: data/oui.tsv.gz
+          delete-branch: true
