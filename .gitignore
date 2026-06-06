@@ -1,0 +1,6 @@
+/target
+**/*.rs.bk
+*.pdb
+
+# Cargo.lock IS committed: this crate ships a binary, so a locked, reproducible
+# build is desirable. (Do not add Cargo.lock here.)
