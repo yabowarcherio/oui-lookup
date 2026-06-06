@@ -9,3 +9,8 @@ pub fn lookup(mac: &str) -> Option<&'static str> {
     let oui = mac::parse_oui(mac).ok()?;
     db::lookup_prefix(oui)
 }
+
+pub fn try_lookup(mac: &str) -> Result<Option<&'static str>, ParseMacError> {
+    let oui = mac::parse_oui(mac)?;
+    Ok(db::lookup_prefix(oui))
+}
