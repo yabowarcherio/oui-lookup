@@ -80,6 +80,40 @@ pub fn parse_oui(input: &str) -> Result<u32, ParseMacError> {
     Ok(oui)
 }
 
+/// Parse a full 48-bit MAC address into its six octets.
+///
+/// Unlike [`parse_oui`], this requires all six octets (twelve hex digits) to be
+/// present and returns the complete address. Separators are handled the same
+/// way as in [`parse_oui`].
+///
+/// # Errors
+///
+/// Returns [`ParseMacError::TooShort`] if fewer than twelve hex digits are
+/// supplied, [`ParseMacError::TooLong`] if more, or
+/// [`ParseMacError::InvalidChar`] for any non-hex, non-separator character.
+pub fn parse_mac48(input: &str) -> Result<[u8; 6], ParseMacError> {
+    let mut octets = [0u8; 6];
+    let mut digits = 0usize;
+
+    for c in input.chars() {
+        if is_separator(c) {
+            continue;
+        }
+        let v = hex_val(c).ok_or(ParseMacError::InvalidChar(c))? as u8;
+        if digits >= 12 {
+            return Err(ParseMacError::TooLong);
+        }
+        let idx = digits / 2;
+        octets[idx] = (octets[idx] << 4) | v;
+        digits += 1;
+    }
+
+    if digits < 12 {
+        return Err(ParseMacError::TooShort);
+    }
+    Ok(octets)
+}
+
 /// Format a 24-bit OUI prefix as the canonical `AA:BB:CC` string.
 pub fn format_oui(oui: u32) -> String {
     format!(
