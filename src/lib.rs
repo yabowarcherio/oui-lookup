@@ -39,7 +39,7 @@
 mod db;
 mod mac;
 
-pub use mac::{format_oui, parse_oui, ParseMacError};
+pub use mac::{format_mac48, format_oui, parse_mac48, parse_oui, ParseMacError};
 
 /// The number of OUI prefixes embedded in this build of the crate.
 ///

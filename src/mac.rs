@@ -80,6 +80,27 @@ pub fn parse_oui(input: &str) -> Result<u32, ParseMacError> {
     Ok(oui)
 }
 
+/// Returns `true` if the address is a multicast address (least-significant bit
+/// of the first octet set). Unicast addresses have this bit clear.
+#[inline]
+pub fn is_multicast(octets: [u8; 6]) -> bool {
+    octets[0] & 0x01 != 0
+}
+
+/// Returns `true` if the address is locally administered (the second-least-
+/// significant bit of the first octet set), as opposed to a globally unique,
+/// IEEE-assigned address.
+#[inline]
+pub fn is_locally_administered(octets: [u8; 6]) -> bool {
+    octets[0] & 0x02 != 0
+}
+
+/// Returns `true` if the address is the broadcast address `FF:FF:FF:FF:FF:FF`.
+#[inline]
+pub fn is_broadcast(octets: [u8; 6]) -> bool {
+    octets == [0xFF; 6]
+}
+
 /// Parse a full 48-bit MAC address into its six octets.
 ///
 /// Unlike [`parse_oui`], this requires all six octets (twelve hex digits) to be
@@ -112,6 +133,15 @@ pub fn parse_mac48(input: &str) -> Result<[u8; 6], ParseMacError> {
         return Err(ParseMacError::TooShort);
     }
     Ok(octets)
+}
+
+/// Format a full 48-bit MAC address as the canonical colon-separated string,
+/// e.g. `00:11:22:33:44:55`.
+pub fn format_mac48(octets: [u8; 6]) -> String {
+    format!(
+        "{:02X}:{:02X}:{:02X}:{:02X}:{:02X}:{:02X}",
+        octets[0], octets[1], octets[2], octets[3], octets[4], octets[5]
+    )
 }
 
 /// Format a 24-bit OUI prefix as the canonical `AA:BB:CC` string.
