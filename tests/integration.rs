@@ -59,3 +59,14 @@ fn bad_input_errors_in_try_lookup_but_is_none_in_lookup() {
         assert_eq!(lookup(bad), None, "{bad:?} should be None via lookup");
     }
 }
+
+#[test]
+fn lookup_many_preserves_order_and_count() {
+    use oui_lookup::lookup_many;
+    let input = ["a4:83:e7:00:00:00", "garbage", "ff:ff:ff:00:00:00"];
+    let out = lookup_many(input);
+    assert_eq!(out.len(), 3);
+    assert_eq!(out[0], oui_lookup::lookup(input[0]));
+    assert_eq!(out[1], None);
+    assert_eq!(out[2], None);
+}
