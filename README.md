@@ -91,6 +91,13 @@ Read many addresses from stdin:
 arp -a | grep -oE '([0-9a-f]{2}:){5}[0-9a-f]{2}' | oui-lookup -
 ```
 
+Show the address class alongside the vendor:
+
+```sh
+oui-lookup --class a4:83:e7:9c:1d:42
+# A4:83:E7             global-unicast   Apple, Inc.
+```
+
 **Exit codes:** `0` all matched · `1` parsed but at least one unknown vendor ·
 `2` at least one input failed to parse.
 
