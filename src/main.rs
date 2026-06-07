@@ -38,6 +38,10 @@ struct Cli {
     /// Print the number of OUI entries embedded in this build and exit.
     #[arg(long, exclusive = true)]
     count: bool,
+
+    /// In human output, also print the address class (unicast/multicast/...).
+    #[arg(long, conflicts_with = "json")]
+    class: bool,
 }
 
 /// One resolved (or unresolved) lookup result.
