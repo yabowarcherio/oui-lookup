@@ -1,7 +1,7 @@
 //! Micro-benchmark for the hot lookup path.
 
 use criterion::{black_box, criterion_group, criterion_main, Criterion};
-use oui_lookup::lookup;
+use oui_lookup::{classify, lookup, parse_mac48};
 
 fn bench_lookup(c: &mut Criterion) {
     // A spread of well-known, registered OUIs.
@@ -18,6 +18,13 @@ fn bench_lookup(c: &mut Criterion) {
             for m in &macs {
                 black_box(lookup(black_box(m)));
             }
+        })
+    });
+
+    c.bench_function("parse_and_classify", |b| {
+        b.iter(|| {
+            let m = parse_mac48(black_box("a4:83:e7:9c:1d:42")).unwrap();
+            black_box(classify(m))
         })
     });
 
