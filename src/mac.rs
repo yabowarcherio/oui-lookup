@@ -94,6 +94,18 @@ pub enum MacKind {
     GlobalUnicast,
 }
 
+impl fmt::Display for MacKind {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        let s = match self {
+            MacKind::Broadcast => "broadcast",
+            MacKind::Multicast => "multicast",
+            MacKind::LocalUnicast => "local-unicast",
+            MacKind::GlobalUnicast => "global-unicast",
+        };
+        f.write_str(s)
+    }
+}
+
 /// Classify a 48-bit MAC address into a [`MacKind`].
 pub fn classify(octets: [u8; 6]) -> MacKind {
     if is_broadcast(octets) {
