@@ -6,6 +6,17 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+## [0.2.0]
+
+### Added
+
+- `parse_mac48` / `format_mac48` for full 48-bit addresses.
+- `to_eui64` for IPv6 Modified EUI-64 interface identifiers.
+- `is_multicast`, `is_locally_administered`, `is_broadcast` bit helpers.
+- `MacKind` enum and `classify()` for coarse address classification.
+- `lookup_many` batch helper and `is_registered` predicate.
+- CLI `--count` and `--class` flags; black-box CLI tests.
+
 ## [0.1.0]
 
 Initial release.
@@ -23,5 +34,6 @@ Initial release.
 - `serde` feature for deriving serde traits on the `Vendor` type.
 - Criterion benchmark for the lookup hot path.
 
-[Unreleased]: https://github.com/yabowarcherio/oui-lookup/compare/v0.1.0...HEAD
+[Unreleased]: https://github.com/yabowarcherio/oui-lookup/compare/v0.2.0...HEAD
+[0.2.0]: https://github.com/yabowarcherio/oui-lookup/compare/v0.1.0...v0.2.0
 [0.1.0]: https://github.com/yabowarcherio/oui-lookup/releases/tag/v0.1.0
