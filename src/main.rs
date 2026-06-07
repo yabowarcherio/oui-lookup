@@ -20,7 +20,7 @@ use oui_lookup::{format_oui, parse_oui};
     about,
     long_about = None,
     after_help = "Reads addresses from arguments, or one per line from stdin when given `-`.\n\
-                  Exit code is 1 if any address parsed but matched no vendor."
+                  Exit code is 1 if any address parsed but matched no vendor, 2 on a parse error."
 )]
 struct Cli {
     /// MAC addresses or OUI prefixes to look up. Use `-` to read from stdin.
