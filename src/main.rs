@@ -24,7 +24,7 @@ use oui_lookup::{format_oui, parse_oui};
 )]
 struct Cli {
     /// MAC addresses or OUI prefixes to look up. Use `-` to read from stdin.
-    #[arg(value_name = "MAC", required = true)]
+    #[arg(value_name = "MAC", required_unless_present = "count")]
     addrs: Vec<String>,
 
     /// Emit results as a JSON array.
@@ -34,6 +34,10 @@ struct Cli {
     /// Suppress the "(unknown)" lines for unmatched addresses (human output).
     #[arg(long, conflicts_with = "json")]
     quiet: bool,
+
+    /// Print the number of OUI entries embedded in this build and exit.
+    #[arg(long, exclusive = true)]
+    count: bool,
 }
 
 /// One resolved (or unresolved) lookup result.
@@ -91,6 +95,11 @@ fn collect_inputs(args: &[String]) -> io::Result<Vec<String>> {
 
 fn main() -> ExitCode {
     let cli = Cli::parse();
+
+    if cli.count {
+        println!("{}", oui_lookup::ENTRY_COUNT);
+        return ExitCode::SUCCESS;
+    }
 
     let inputs = match collect_inputs(&cli.addrs) {
         Ok(v) => v,
