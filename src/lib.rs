@@ -108,6 +108,17 @@ pub fn lookup_vendor(mac: &str) -> Option<Vendor> {
     })
 }
 
+/// Look up many MAC addresses at once, returning a vector of results in the
+/// same order as the input. Each element is `Some(name)` for a registered OUI
+/// or `None` if the input is unparseable or unregistered.
+pub fn lookup_many<I, S>(macs: I) -> Vec<Option<&'static str>>
+where
+    I: IntoIterator<Item = S>,
+    S: AsRef<str>,
+{
+    macs.into_iter().map(|m| lookup(m.as_ref())).collect()
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
