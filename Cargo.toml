@@ -17,6 +17,7 @@ exclude = [
     "scripts/",
     "benches/",
     "tests/fixtures/",
+    "deny.toml",
 ]
 
 [lib]
