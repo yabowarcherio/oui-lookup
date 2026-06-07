@@ -10,7 +10,7 @@ use std::io::{self, BufRead, Write};
 use std::process::ExitCode;
 
 use clap::Parser;
-use oui_lookup::{format_oui, parse_oui};
+use oui_lookup::{classify, format_oui, parse_mac48, parse_oui};
 
 /// Offline MAC-address vendor (OUI) lookup.
 #[derive(Parser, Debug)]
@@ -133,7 +133,20 @@ fn main() -> ExitCode {
             if let Some(err) = &r.error {
                 let _ = writeln!(out, "{:<20} error: {err}", r.input);
             } else if let Some(v) = &r.vendor {
-                let _ = writeln!(out, "{:<20} {}", r.prefix.as_deref().unwrap_or(""), v);
+                if cli.class {
+                    let cls = parse_mac48(&r.input)
+                        .map(|m| classify(m).to_string())
+                        .unwrap_or_else(|_| "-".to_string());
+                    let _ = writeln!(
+                        out,
+                        "{:<20} {:<16} {}",
+                        r.prefix.as_deref().unwrap_or(""),
+                        cls,
+                        v
+                    );
+                } else {
+                    let _ = writeln!(out, "{:<20} {}", r.prefix.as_deref().unwrap_or(""), v);
+                }
             } else if !cli.quiet {
                 let _ = writeln!(
                     out,
