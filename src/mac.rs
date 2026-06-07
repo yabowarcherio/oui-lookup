@@ -182,4 +182,21 @@ mod tests {
         assert_eq!(format_oui(0x001122), "00:11:22");
         assert_eq!(format_oui(0xAABBCC), "AA:BB:CC");
     }
+
+    #[test]
+    fn parses_full_mac48() {
+        assert_eq!(
+            parse_mac48("00:11:22:33:44:55").unwrap(),
+            [0x00, 0x11, 0x22, 0x33, 0x44, 0x55]
+        );
+        assert_eq!(
+            parse_mac48("aabbccddeeff").unwrap(),
+            [0xAA, 0xBB, 0xCC, 0xDD, 0xEE, 0xFF]
+        );
+    }
+
+    #[test]
+    fn mac48_requires_all_six_octets() {
+        assert_eq!(parse_mac48("00:11:22").unwrap_err(), ParseMacError::TooShort);
+    }
 }
