@@ -135,6 +135,22 @@ pub fn parse_mac48(input: &str) -> Result<[u8; 6], ParseMacError> {
     Ok(octets)
 }
 
+/// Convert a 48-bit MAC address to its Modified EUI-64 interface identifier,
+/// as used when forming IPv6 link-local addresses (RFC 4291). The `FF:FE` is
+/// inserted in the middle and the universal/local bit is flipped.
+pub fn to_eui64(octets: [u8; 6]) -> [u8; 8] {
+    let mut eui = [0u8; 8];
+    eui[0] = octets[0] ^ 0x02;
+    eui[1] = octets[1];
+    eui[2] = octets[2];
+    eui[3] = 0xFF;
+    eui[4] = 0xFE;
+    eui[5] = octets[3];
+    eui[6] = octets[4];
+    eui[7] = octets[5];
+    eui
+}
+
 /// Format a full 48-bit MAC address as the canonical colon-separated string,
 /// e.g. `00:11:22:33:44:55`.
 pub fn format_mac48(octets: [u8; 6]) -> String {
@@ -227,7 +243,10 @@ mod tests {
 
     #[test]
     fn mac48_requires_all_six_octets() {
-        assert_eq!(parse_mac48("00:11:22").unwrap_err(), ParseMacError::TooShort);
+        assert_eq!(
+            parse_mac48("00:11:22").unwrap_err(),
+            ParseMacError::TooShort
+        );
     }
 
     #[test]
