@@ -23,6 +23,7 @@ cargo fmt --all -- --check
 cargo clippy --all-targets --all-features -- -D warnings
 cargo test --all-features
 cargo build --no-default-features        # library-only must still build
+cargo deny check                         # licenses & advisories (if installed)
 ```
 
 ## Updating the OUI database
