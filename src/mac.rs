@@ -80,6 +80,33 @@ pub fn parse_oui(input: &str) -> Result<u32, ParseMacError> {
     Ok(oui)
 }
 
+/// A coarse classification of a MAC address based on the two low bits of its
+/// first octet and the all-ones broadcast special case.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum MacKind {
+    /// The broadcast address `FF:FF:FF:FF:FF:FF`.
+    Broadcast,
+    /// A group/multicast address (LSB of the first octet set).
+    Multicast,
+    /// A locally administered unicast address (U/L bit set).
+    LocalUnicast,
+    /// A globally unique, IEEE-assigned unicast address.
+    GlobalUnicast,
+}
+
+/// Classify a 48-bit MAC address into a [`MacKind`].
+pub fn classify(octets: [u8; 6]) -> MacKind {
+    if is_broadcast(octets) {
+        MacKind::Broadcast
+    } else if is_multicast(octets) {
+        MacKind::Multicast
+    } else if is_locally_administered(octets) {
+        MacKind::LocalUnicast
+    } else {
+        MacKind::GlobalUnicast
+    }
+}
+
 /// Returns `true` if the address is a multicast address (least-significant bit
 /// of the first octet set). Unicast addresses have this bit clear.
 #[inline]

@@ -40,8 +40,8 @@ mod db;
 mod mac;
 
 pub use mac::{
-    format_mac48, format_oui, is_broadcast, is_locally_administered, is_multicast, parse_mac48,
-    parse_oui, to_eui64, ParseMacError,
+    classify, format_mac48, format_oui, is_broadcast, is_locally_administered, is_multicast,
+    parse_mac48, parse_oui, to_eui64, MacKind, ParseMacError,
 };
 
 /// The number of OUI prefixes embedded in this build of the crate.
