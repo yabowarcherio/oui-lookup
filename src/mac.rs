@@ -268,6 +268,16 @@ mod tests {
     }
 
     #[test]
+    fn converts_to_eui64() {
+        // RFC 4291 example-style: flip the U/L bit, insert FF:FE.
+        let mac = parse_mac48("00:11:22:33:44:55").unwrap();
+        assert_eq!(
+            to_eui64(mac),
+            [0x02, 0x11, 0x22, 0xFF, 0xFE, 0x33, 0x44, 0x55]
+        );
+    }
+
+    #[test]
     fn detects_broadcast() {
         assert!(is_broadcast(parse_mac48("ff:ff:ff:ff:ff:ff").unwrap()));
         assert!(!is_broadcast(parse_mac48("ff:ff:ff:00:00:00").unwrap()));
