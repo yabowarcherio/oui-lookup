@@ -108,6 +108,13 @@ pub fn lookup_vendor(mac: &str) -> Option<Vendor> {
     })
 }
 
+/// Returns `true` if the OUI of the given MAC address is present in the
+/// embedded registry. Equivalent to `lookup(mac).is_some()`.
+#[inline]
+pub fn is_registered(mac: &str) -> bool {
+    lookup(mac).is_some()
+}
+
 /// Look up many MAC addresses at once, returning a vector of results in the
 /// same order as the input. Each element is `Some(name)` for a registered OUI
 /// or `None` if the input is unparseable or unregistered.
