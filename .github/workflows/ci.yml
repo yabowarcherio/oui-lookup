@@ -72,3 +72,10 @@ jobs:
         env:
           RUSTDOCFLAGS: "--cfg docsrs -D warnings"
         run: cargo doc --no-deps --all-features
+
+  deny:
+    name: cargo-deny (licenses, advisories)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: EmbarkStudios/cargo-deny-action@v2
