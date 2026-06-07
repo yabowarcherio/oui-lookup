@@ -32,6 +32,15 @@
 //! - `serde` — derives [`serde::Serialize`]/[`serde::Deserialize`] on
 //!   [`Vendor`].
 
+//!
+//! ## Address utilities
+//!
+//! ```
+//! use oui_lookup::{parse_mac48, classify, MacKind};
+//! let mac = parse_mac48("ff:ff:ff:ff:ff:ff").unwrap();
+//! assert_eq!(classify(mac), MacKind::Broadcast);
+//! ```
+
 #![cfg_attr(docsrs, feature(doc_cfg))]
 #![forbid(unsafe_code)]
 #![warn(missing_docs)]
