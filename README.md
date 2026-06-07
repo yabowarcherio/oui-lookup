@@ -111,6 +111,24 @@ let v = lookup_vendor("28:cf:e9:11:22:33").unwrap();
 assert_eq!(v.prefix, "28:CF:E9");
 ```
 
+## More library helpers
+
+```rust
+use oui_lookup::{lookup_many, is_registered, parse_mac48, to_eui64, is_multicast};
+
+// Batch lookups, order preserved.
+let names = lookup_many(["a4:83:e7:00:00:00", "28:cf:e9:11:22:33"]);
+assert_eq!(names.len(), 2);
+
+// Cheap membership check.
+assert!(is_registered("a4:83:e7:00:00:00") || !is_registered("a4:83:e7:00:00:00"));
+
+// Full-address utilities.
+let mac = parse_mac48("01:00:5e:00:00:01").unwrap();
+assert!(is_multicast(mac));
+let _eui64 = to_eui64(mac);
+```
+
 ## How the data is embedded
 
 1. `data/oui.tsv.gz` — a gzip-compressed `PREFIX\tVendor` snapshot of the IEEE
