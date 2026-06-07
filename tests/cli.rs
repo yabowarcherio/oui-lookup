@@ -36,3 +36,13 @@ fn json_flag_emits_array() {
     let s = String::from_utf8(out.stdout).unwrap();
     assert!(s.trim_start().starts_with('['));
 }
+
+#[test]
+fn class_flag_labels_global_unicast() {
+    let out = bin()
+        .args(["--class", "a4:83:e7:00:00:00"])
+        .output()
+        .unwrap();
+    let s = String::from_utf8(out.stdout).unwrap();
+    assert!(s.contains("global-unicast"), "got: {s}");
+}
