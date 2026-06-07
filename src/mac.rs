@@ -229,4 +229,28 @@ mod tests {
     fn mac48_requires_all_six_octets() {
         assert_eq!(parse_mac48("00:11:22").unwrap_err(), ParseMacError::TooShort);
     }
+
+    #[test]
+    fn detects_multicast_and_local_bits() {
+        // 01:00:5e:... is the IPv4 multicast range — LSB of first octet set.
+        let mc = parse_mac48("01:00:5e:00:00:01").unwrap();
+        assert!(is_multicast(mc));
+        assert!(!is_locally_administered(mc));
+
+        // 02:... has the locally-administered bit set, unicast.
+        let local = parse_mac48("02:00:00:00:00:01").unwrap();
+        assert!(is_locally_administered(local));
+        assert!(!is_multicast(local));
+
+        // A normal IEEE-assigned unicast address: both bits clear.
+        let global = parse_mac48("a4:83:e7:00:00:01").unwrap();
+        assert!(!is_multicast(global));
+        assert!(!is_locally_administered(global));
+    }
+
+    #[test]
+    fn detects_broadcast() {
+        assert!(is_broadcast(parse_mac48("ff:ff:ff:ff:ff:ff").unwrap()));
+        assert!(!is_broadcast(parse_mac48("ff:ff:ff:00:00:00").unwrap()));
+    }
 }
