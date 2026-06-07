@@ -70,3 +70,15 @@ fn lookup_many_preserves_order_and_count() {
     assert_eq!(out[1], None);
     assert_eq!(out[2], None);
 }
+
+#[test]
+fn classify_is_consistent_with_bit_helpers() {
+    use oui_lookup::{classify, is_broadcast, is_multicast, parse_mac48, MacKind};
+    let bcast = parse_mac48("ff:ff:ff:ff:ff:ff").unwrap();
+    assert!(is_broadcast(bcast));
+    assert_eq!(classify(bcast), MacKind::Broadcast);
+
+    let mc = parse_mac48("01:80:c2:00:00:00").unwrap();
+    assert!(is_multicast(mc));
+    assert_eq!(classify(mc), MacKind::Multicast);
+}
