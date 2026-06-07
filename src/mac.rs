@@ -305,6 +305,26 @@ mod tests {
     }
 
     #[test]
+    fn classifies_addresses() {
+        assert_eq!(
+            classify(parse_mac48("ff:ff:ff:ff:ff:ff").unwrap()),
+            MacKind::Broadcast
+        );
+        assert_eq!(
+            classify(parse_mac48("01:00:5e:00:00:01").unwrap()),
+            MacKind::Multicast
+        );
+        assert_eq!(
+            classify(parse_mac48("02:00:00:00:00:01").unwrap()),
+            MacKind::LocalUnicast
+        );
+        assert_eq!(
+            classify(parse_mac48("a4:83:e7:00:00:01").unwrap()),
+            MacKind::GlobalUnicast
+        );
+    }
+
+    #[test]
     fn detects_broadcast() {
         assert!(is_broadcast(parse_mac48("ff:ff:ff:ff:ff:ff").unwrap()));
         assert!(!is_broadcast(parse_mac48("ff:ff:ff:00:00:00").unwrap()));
