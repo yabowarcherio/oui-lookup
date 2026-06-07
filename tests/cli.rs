@@ -29,7 +29,10 @@ fn bad_input_exits_two() {
 
 #[test]
 fn json_flag_emits_array() {
-    let out = bin().args(["--json", "a4:83:e7:00:00:00"]).output().unwrap();
+    let out = bin()
+        .args(["--json", "a4:83:e7:00:00:00"])
+        .output()
+        .unwrap();
     let s = String::from_utf8(out.stdout).unwrap();
     assert!(s.trim_start().starts_with('['));
 }
