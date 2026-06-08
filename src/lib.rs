@@ -180,6 +180,12 @@ impl Entry {
     }
 }
 
+impl std::fmt::Display for Entry {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{}  {}", self.prefix_str(), self.name)
+    }
+}
+
 /// Find all entries whose vendor name contains `needle`, case-insensitively.
 ///
 /// Returns a lazy iterator over matching [`Entry`] values in prefix order.
