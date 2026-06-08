@@ -33,6 +33,14 @@
 //!   [`Vendor`].
 
 //!
+//! ## Searching
+//!
+//! ```
+//! use oui_lookup::search;
+//! // Every match is an `Entry`; the iterator is lazy.
+//! let _apple_ouis: Vec<_> = search("apple").collect();
+//! ```
+//!
 //! ## Address utilities
 //!
 //! ```
