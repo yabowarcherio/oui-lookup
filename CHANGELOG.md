@@ -14,7 +14,8 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 - `search()` for case-insensitive vendor-name lookup.
 - `lookup_octets()` for pre-parsed `[u8; 6]` addresses.
 - `normalize_mac()` to canonicalize any MAC spelling.
-- CLI `--search` flag.
+- CLI `--search` flag with `--limit`.
+- `lookup_entry`, `count_matching` helpers and `Entry: Display`.
 
 ## [0.2.0]
 
