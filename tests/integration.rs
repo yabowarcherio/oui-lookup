@@ -166,3 +166,13 @@ fn count_matching_equals_search_count() {
     use oui_lookup::{count_matching, search};
     assert_eq!(count_matching("apple"), search("apple").count());
 }
+
+#[test]
+fn search_results_are_sorted_by_prefix() {
+    use oui_lookup::search;
+    let mut prev = 0u32;
+    for e in search("inc") {
+        assert!(e.prefix >= prev);
+        prev = e.prefix;
+    }
+}
