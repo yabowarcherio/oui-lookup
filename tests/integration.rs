@@ -138,3 +138,12 @@ fn vendor_serializes_with_serde() {
         assert!(json.contains("name"));
     }
 }
+
+#[test]
+fn entry_display_contains_prefix_and_name() {
+    use oui_lookup::entries;
+    let e = entries().next().unwrap();
+    let s = format!("{e}");
+    assert!(s.contains(&e.prefix_str()));
+    assert!(s.contains(e.name));
+}
