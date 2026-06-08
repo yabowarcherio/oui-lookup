@@ -95,6 +95,24 @@ impl Table {
     }
 }
 
+/// Total number of entries in the embedded table.
+#[inline]
+pub fn len() -> usize {
+    table().count
+}
+
+/// Return the `i`-th entry as `(prefix, vendor)` in sorted prefix order, or
+/// `None` if `i` is out of range.
+#[inline]
+pub fn entry(i: usize) -> Option<(u32, &'static str)> {
+    let t = table();
+    if i < t.count {
+        Some((t.prefix_at(i), t.vendor_at(i)))
+    } else {
+        None
+    }
+}
+
 /// Look up a 24-bit OUI prefix (low 24 bits of the `u32`) in the embedded table.
 ///
 /// Returns the vendor name as a `'static` string slice borrowed directly from
