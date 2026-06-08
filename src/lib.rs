@@ -135,6 +135,28 @@ where
     macs.into_iter().map(|m| lookup(m.as_ref())).collect()
 }
 
+/// A single entry from the embedded OUI table.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub struct Entry {
+    /// The 24-bit OUI prefix, in the low bits of the `u32`.
+    pub prefix: u32,
+    /// The registered organization name.
+    pub name: &'static str,
+}
+
+impl Entry {
+    /// The OUI prefix formatted as the canonical `AA:BB:CC` string.
+    pub fn prefix_str(&self) -> String {
+        mac::format_oui(self.prefix)
+    }
+}
+
+/// Iterate over every entry in the embedded registry, in ascending prefix
+/// order.
+pub fn entries() -> impl Iterator<Item = Entry> {
+    (0..db::len()).filter_map(|i| db::entry(i).map(|(prefix, name)| Entry { prefix, name }))
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
