@@ -147,3 +147,16 @@ fn entry_display_contains_prefix_and_name() {
     assert!(s.contains(&e.prefix_str()));
     assert!(s.contains(e.name));
 }
+
+#[test]
+fn lookup_entry_agrees_with_lookup() {
+    use oui_lookup::{lookup, lookup_entry};
+    match (
+        lookup("a4:83:e7:00:00:00"),
+        lookup_entry("a4:83:e7:00:00:00"),
+    ) {
+        (Some(name), Some(e)) => assert_eq!(name, e.name),
+        (None, None) => {}
+        _ => panic!("mismatch"),
+    }
+}
