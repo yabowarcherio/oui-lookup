@@ -10,7 +10,7 @@ use std::io::{self, BufRead, Write};
 use std::process::ExitCode;
 
 use clap::Parser;
-use oui_lookup::{classify, format_oui, parse_mac48, parse_oui};
+use oui_lookup::{classify, format_oui, parse_mac48, parse_oui, search};
 
 /// Offline MAC-address vendor (OUI) lookup.
 #[derive(Parser, Debug)]
@@ -108,6 +108,19 @@ fn main() -> ExitCode {
     if cli.count {
         println!("{}", oui_lookup::ENTRY_COUNT);
         return ExitCode::SUCCESS;
+    }
+
+    if let Some(term) = &cli.search {
+        let mut found = 0usize;
+        for e in search(term) {
+            println!("{}\t{}", e.prefix_str(), e.name);
+            found += 1;
+        }
+        return if found > 0 {
+            ExitCode::SUCCESS
+        } else {
+            ExitCode::from(1)
+        };
     }
 
     let inputs = match collect_inputs(&cli.addrs) {
