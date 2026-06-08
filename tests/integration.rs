@@ -102,3 +102,19 @@ fn lookup_octets_matches_string_lookup() {
     let octets = [0xA4, 0x83, 0xE7, 0x00, 0x00, 0x00];
     assert_eq!(lookup_octets(octets), lookup("a4:83:e7:00:00:00"));
 }
+
+#[test]
+fn search_finds_known_vendor() {
+    use oui_lookup::search;
+    // Apple has many registered OUIs; at least one must match.
+    let n = search("apple").count();
+    assert!(n > 0, "expected at least one Apple OUI");
+    // Case-insensitive.
+    assert_eq!(search("APPLE").count(), n);
+}
+
+#[test]
+fn search_empty_needle_matches_all() {
+    use oui_lookup::{search, ENTRY_COUNT};
+    assert_eq!(search("").count(), ENTRY_COUNT);
+}
