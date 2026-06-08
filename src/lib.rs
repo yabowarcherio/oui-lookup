@@ -117,6 +117,16 @@ pub fn lookup_vendor(mac: &str) -> Option<Vendor> {
     })
 }
 
+/// Look up the vendor for a MAC address already parsed into octets.
+///
+/// Useful when you have the raw bytes (e.g. from an ARP table) and want to
+/// avoid re-parsing a string.
+#[inline]
+pub fn lookup_octets(octets: [u8; 6]) -> Option<&'static str> {
+    let oui = (u32::from(octets[0]) << 16) | (u32::from(octets[1]) << 8) | u32::from(octets[2]);
+    db::lookup_prefix(oui)
+}
+
 /// Returns `true` if the OUI of the given MAC address is present in the
 /// embedded registry. Equivalent to `lookup(mac).is_some()`.
 #[inline]
