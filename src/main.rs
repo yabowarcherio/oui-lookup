@@ -42,6 +42,11 @@ struct Cli {
     /// In human output, also print the address class (unicast/multicast/...).
     #[arg(long, conflicts_with = "json")]
     class: bool,
+
+    /// Search the registry for vendors whose name contains this text, print
+    /// their OUI prefixes, and exit.
+    #[arg(long, value_name = "TEXT", exclusive = true)]
+    search: Option<String>,
 }
 
 /// One resolved (or unresolved) lookup result.
