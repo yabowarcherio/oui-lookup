@@ -24,7 +24,7 @@ use oui_lookup::{classify, format_oui, parse_mac48, parse_oui, search};
 )]
 struct Cli {
     /// MAC addresses or OUI prefixes to look up. Use `-` to read from stdin.
-    #[arg(value_name = "MAC", required_unless_present = "count")]
+    #[arg(value_name = "MAC", required_unless_present_any = ["count", "search"])]
     addrs: Vec<String>,
 
     /// Emit results as a JSON array.
@@ -117,6 +117,9 @@ fn main() -> ExitCode {
     if let Some(term) = &cli.search {
         let mut found = 0usize;
         for e in search(term) {
+            if cli.limit != 0 && found >= cli.limit {
+                break;
+            }
             println!("{}\t{}", e.prefix_str(), e.name);
             found += 1;
         }
