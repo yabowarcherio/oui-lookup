@@ -146,6 +146,14 @@ pub fn lookup_octets(octets: [u8; 6]) -> Option<&'static str> {
     db::lookup_prefix(oui)
 }
 
+/// Look up a MAC address and return the matching [`Entry`] (prefix + name),
+/// or `None` if unparseable or unregistered.
+pub fn lookup_entry(mac: &str) -> Option<Entry> {
+    let oui = mac::parse_oui(mac).ok()?;
+    let name = db::lookup_prefix(oui)?;
+    Some(Entry { prefix: oui, name })
+}
+
 /// Returns `true` if the OUI of the given MAC address is present in the
 /// embedded registry. Equivalent to `lookup(mac).is_some()`.
 #[inline]
