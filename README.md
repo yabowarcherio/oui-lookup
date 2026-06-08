@@ -158,6 +158,19 @@ oui-lookup --search "raspberry pi"
 oui-lookup --count          # how many OUIs are embedded
 ```
 
+## Quick counts
+
+```rust
+use oui_lookup::{count_matching, lookup_entry};
+
+let apple_blocks = count_matching("apple");
+println!("Apple holds {apple_blocks} OUI blocks");
+
+if let Some(e) = lookup_entry("a4:83:e7:00:00:00") {
+    println!("{}", e); // "A4:83:E7  Apple, Inc."
+}
+```
+
 ## How the data is embedded
 
 1. `data/oui.tsv.gz` — a gzip-compressed `PREFIX\tVendor` snapshot of the IEEE
