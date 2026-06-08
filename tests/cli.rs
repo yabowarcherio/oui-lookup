@@ -126,3 +126,31 @@ fn format_csv_two_columns() {
         "expected comma-separated output: {line:?}"
     );
 }
+
+#[test]
+fn input_file_reads_addresses() {
+    use std::io::Write;
+    let mut path = std::env::temp_dir();
+    path.push(format!("oui-input-{}.txt", std::process::id()));
+    {
+        let mut f = std::fs::File::create(&path).unwrap();
+        // Blank lines and comments must be ignored.
+        writeln!(f, "# a comment").unwrap();
+        writeln!(f).unwrap();
+        writeln!(f, "a4:83:e7:00:00:00").unwrap();
+    }
+    let out = bin().args(["--input"]).arg(&path).output().unwrap();
+    let _ = std::fs::remove_file(&path);
+    let s = String::from_utf8(out.stdout).unwrap();
+    let rows = s.lines().filter(|l| !l.is_empty()).count();
+    assert_eq!(rows, 1, "exactly one address should resolve: {s:?}");
+}
+
+#[test]
+fn missing_input_file_exits_two() {
+    let out = bin()
+        .args(["--input", "/no/such/oui/file.txt"])
+        .output()
+        .unwrap();
+    assert_eq!(out.status.code(), Some(2));
+}

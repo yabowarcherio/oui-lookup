@@ -6,6 +6,7 @@
 //! echo "00:11:22" | oui-lookup -
 //! ```
 
+use std::fs::File;
 use std::io::{self, BufRead, Write};
 use std::process::ExitCode;
 
@@ -35,8 +36,13 @@ enum Format {
 )]
 struct Cli {
     /// MAC addresses or OUI prefixes to look up. Use `-` to read from stdin.
-    #[arg(value_name = "MAC", required_unless_present_any = ["count", "search"])]
+    #[arg(value_name = "MAC", required_unless_present_any = ["count", "search", "input"])]
     addrs: Vec<String>,
+
+    /// Read addresses from a file, one per line (repeatable). Use `-` for
+    /// stdin. Blank lines and lines beginning with `#` are ignored.
+    #[arg(short = 'i', long = "input", value_name = "FILE")]
+    input: Vec<String>,
 
     /// Emit results as a JSON array.
     #[arg(long)]
@@ -101,22 +107,42 @@ fn resolve(input: &str) -> Record {
     }
 }
 
-/// Expand the argument list, replacing a `-` with lines read from stdin.
-fn collect_inputs(args: &[String]) -> io::Result<Vec<String>> {
+/// Append every non-blank, non-comment line from `reader` to `out`.
+fn read_lines<R: BufRead>(reader: R, out: &mut Vec<String>) -> io::Result<()> {
+    for line in reader.lines() {
+        let line = line?;
+        let trimmed = line.trim();
+        if !trimmed.is_empty() && !trimmed.starts_with('#') {
+            out.push(trimmed.to_string());
+        }
+    }
+    Ok(())
+}
+
+/// Read addresses from a file path, treating `-` as stdin.
+fn read_path(path: &str, out: &mut Vec<String>) -> io::Result<()> {
+    if path == "-" {
+        read_lines(io::stdin().lock(), out)
+    } else {
+        let file =
+            File::open(path).map_err(|e| io::Error::new(e.kind(), format!("{path}: {e}")))?;
+        read_lines(io::BufReader::new(file), out)
+    }
+}
+
+/// Build the full address list from positional args (where `-` means stdin) and
+/// any `--input` files, preserving order: positionals first, then each file.
+fn collect_inputs(args: &[String], files: &[String]) -> io::Result<Vec<String>> {
     let mut out = Vec::new();
     for a in args {
         if a == "-" {
-            let stdin = io::stdin();
-            for line in stdin.lock().lines() {
-                let line = line?;
-                let trimmed = line.trim();
-                if !trimmed.is_empty() {
-                    out.push(trimmed.to_string());
-                }
-            }
+            read_path("-", &mut out)?;
         } else {
             out.push(a.clone());
         }
+    }
+    for f in files {
+        read_path(f, &mut out)?;
     }
     Ok(out)
 }
@@ -145,10 +171,10 @@ fn main() -> ExitCode {
         };
     }
 
-    let inputs = match collect_inputs(&cli.addrs) {
+    let inputs = match collect_inputs(&cli.addrs, &cli.input) {
         Ok(v) => v,
         Err(e) => {
-            eprintln!("oui-lookup: failed to read stdin: {e}");
+            eprintln!("oui-lookup: failed to read input: {e}");
             return ExitCode::from(2);
         }
     };
