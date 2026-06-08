@@ -204,6 +204,13 @@ pub fn search(needle: &str) -> impl Iterator<Item = Entry> + '_ {
     entries().filter(move |e| e.name.to_ascii_lowercase().contains(&needle))
 }
 
+/// Count how many OUI prefixes are registered to vendors matching `needle`.
+///
+/// Convenience wrapper over [`search`] for the common "how many?" question.
+pub fn count_matching(needle: &str) -> usize {
+    search(needle).count()
+}
+
 /// Iterate over every entry in the embedded registry, in ascending prefix
 /// order.
 pub fn entries() -> impl Iterator<Item = Entry> {
