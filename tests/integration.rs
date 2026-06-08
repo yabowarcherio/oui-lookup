@@ -95,3 +95,10 @@ fn entries_iterates_whole_table_in_order() {
     }
     assert_eq!(count, ENTRY_COUNT);
 }
+
+#[test]
+fn lookup_octets_matches_string_lookup() {
+    use oui_lookup::{lookup, lookup_octets};
+    let octets = [0xA4, 0x83, 0xE7, 0x00, 0x00, 0x00];
+    assert_eq!(lookup_octets(octets), lookup("a4:83:e7:00:00:00"));
+}
