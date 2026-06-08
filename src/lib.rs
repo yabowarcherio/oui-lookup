@@ -117,6 +117,17 @@ pub fn lookup_vendor(mac: &str) -> Option<Vendor> {
     })
 }
 
+/// Normalize any accepted MAC spelling to the canonical upper-case,
+/// colon-separated 48-bit form (`AA:BB:CC:DD:EE:FF`).
+///
+/// # Errors
+///
+/// Returns the same [`ParseMacError`] as [`parse_mac48`] if the input is not a
+/// full, valid 48-bit address.
+pub fn normalize_mac(mac: &str) -> Result<String, ParseMacError> {
+    Ok(mac::format_mac48(mac::parse_mac48(mac)?))
+}
+
 /// Look up the vendor for a MAC address already parsed into octets.
 ///
 /// Useful when you have the raw bytes (e.g. from an ARP table) and want to
