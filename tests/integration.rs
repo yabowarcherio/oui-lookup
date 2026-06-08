@@ -127,3 +127,14 @@ fn normalize_mac_canonicalizes_spellings() {
     }
     assert!(normalize_mac("00:11:22").is_err());
 }
+
+#[cfg(feature = "serde")]
+#[test]
+fn vendor_serializes_with_serde() {
+    use oui_lookup::lookup_vendor;
+    if let Some(v) = lookup_vendor("a4:83:e7:00:00:00") {
+        let json = serde_json::to_string(&v).unwrap();
+        assert!(json.contains("prefix"));
+        assert!(json.contains("name"));
+    }
+}
