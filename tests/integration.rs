@@ -160,3 +160,9 @@ fn lookup_entry_agrees_with_lookup() {
         _ => panic!("mismatch"),
     }
 }
+
+#[test]
+fn count_matching_equals_search_count() {
+    use oui_lookup::{count_matching, search};
+    assert_eq!(count_matching("apple"), search("apple").count());
+}
