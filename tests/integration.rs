@@ -82,3 +82,16 @@ fn classify_is_consistent_with_bit_helpers() {
     assert!(is_multicast(mc));
     assert_eq!(classify(mc), MacKind::Multicast);
 }
+
+#[test]
+fn entries_iterates_whole_table_in_order() {
+    use oui_lookup::{entries, ENTRY_COUNT};
+    let mut count = 0usize;
+    let mut prev = 0u32;
+    for e in entries() {
+        assert!(e.prefix >= prev, "entries must be sorted by prefix");
+        prev = e.prefix;
+        count += 1;
+    }
+    assert_eq!(count, ENTRY_COUNT);
+}
