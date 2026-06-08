@@ -75,3 +75,54 @@ fn search_limit_caps_rows() {
     let rows = s.lines().filter(|l| !l.is_empty()).count();
     assert!(rows <= 3, "got {rows} rows");
 }
+
+#[test]
+fn format_tsv_contains_tab() {
+    let out = bin()
+        .args(["--format", "tsv", "a4:83:e7:00:00:00"])
+        .output()
+        .unwrap();
+    let s = String::from_utf8(out.stdout).unwrap();
+    assert!(s.contains('\t'), "tsv output should contain a tab: {s:?}");
+}
+
+#[test]
+fn format_csv_contains_comma() {
+    let out = bin()
+        .args(["--format", "csv", "a4:83:e7:00:00:00"])
+        .output()
+        .unwrap();
+    let s = String::from_utf8(out.stdout).unwrap();
+    assert!(s.contains(','), "csv output should contain a comma: {s:?}");
+}
+
+#[test]
+fn format_tsv_two_columns() {
+    let out = bin()
+        .args(["--format", "tsv", "a4:83:e7:00:00:00"])
+        .output()
+        .unwrap();
+    let s = String::from_utf8(out.stdout).unwrap();
+    let line = s.lines().next().expect("at least one line");
+    let cols: Vec<&str> = line.splitn(2, '\t').collect();
+    assert_eq!(
+        cols.len(),
+        2,
+        "expected two tab-separated columns: {line:?}"
+    );
+}
+
+#[test]
+fn format_csv_two_columns() {
+    let out = bin()
+        .args(["--format", "csv", "a4:83:e7:00:00:00"])
+        .output()
+        .unwrap();
+    let s = String::from_utf8(out.stdout).unwrap();
+    let line = s.lines().next().expect("at least one line");
+    // At least one comma must be present.
+    assert!(
+        line.contains(','),
+        "expected comma-separated output: {line:?}"
+    );
+}
