@@ -1,7 +1,7 @@
 //! Micro-benchmark for the hot lookup path.
 
 use criterion::{black_box, criterion_group, criterion_main, Criterion};
-use oui_lookup::{classify, lookup, parse_mac48, search};
+use oui_lookup::{classify, entries, lookup, parse_mac48, search};
 
 fn bench_lookup(c: &mut Criterion) {
     // A spread of well-known, registered OUIs.
@@ -37,6 +37,7 @@ fn bench_search(c: &mut Criterion) {
     c.bench_function("search_apple", |b| {
         b.iter(|| black_box(search(black_box("apple")).count()))
     });
+    c.bench_function("iterate_all", |b| b.iter(|| black_box(entries().count())));
 }
 
 criterion_group!(benches, bench_lookup, bench_search);
