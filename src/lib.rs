@@ -161,6 +161,16 @@ impl Entry {
     }
 }
 
+/// Find all entries whose vendor name contains `needle`, case-insensitively.
+///
+/// Returns a lazy iterator over matching [`Entry`] values in prefix order.
+/// Note this is a linear scan over the whole table — fine for interactive use,
+/// but call it sparingly in hot loops.
+pub fn search(needle: &str) -> impl Iterator<Item = Entry> + '_ {
+    let needle = needle.to_ascii_lowercase();
+    entries().filter(move |e| e.name.to_ascii_lowercase().contains(&needle))
+}
+
 /// Iterate over every entry in the embedded registry, in ascending prefix
 /// order.
 pub fn entries() -> impl Iterator<Item = Entry> {
