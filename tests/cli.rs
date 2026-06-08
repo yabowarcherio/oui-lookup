@@ -46,3 +46,21 @@ fn class_flag_labels_global_unicast() {
     let s = String::from_utf8(out.stdout).unwrap();
     assert!(s.contains("global-unicast"), "got: {s}");
 }
+
+#[test]
+fn search_flag_lists_matches() {
+    let out = bin().args(["--search", "apple"]).output().unwrap();
+    assert!(out.status.success());
+    let s = String::from_utf8(out.stdout).unwrap();
+    assert!(s.to_lowercase().contains("apple"));
+    assert!(s.contains(':'), "should print OUI prefixes");
+}
+
+#[test]
+fn search_no_match_exits_one() {
+    let out = bin()
+        .args(["--search", "zzz-no-such-vendor-zzz"])
+        .output()
+        .unwrap();
+    assert_eq!(out.status.code(), Some(1));
+}
