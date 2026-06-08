@@ -6,6 +6,15 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+## [0.4.0]
+
+### Added
+
+- `lookup_vendor_many` for batched lookups returning owned `Vendor` values.
+- CLI `--format text|tsv|csv` to control machine-readable output.
+- CLI `--input`/`-i FILE` to read addresses from one or more files (repeatable;
+  `-` for stdin, blank lines and `#` comments ignored).
+
 ## [0.3.0]
 
 ### Added
@@ -45,7 +54,8 @@ Initial release.
 - `serde` feature for deriving serde traits on the `Vendor` type.
 - Criterion benchmark for the lookup hot path.
 
-[Unreleased]: https://github.com/yabowarcherio/oui-lookup/compare/v0.3.0...HEAD
+[Unreleased]: https://github.com/yabowarcherio/oui-lookup/compare/v0.4.0...HEAD
+[0.4.0]: https://github.com/yabowarcherio/oui-lookup/compare/v0.3.0...v0.4.0
 [0.3.0]: https://github.com/yabowarcherio/oui-lookup/compare/v0.2.0...v0.3.0
 [0.2.0]: https://github.com/yabowarcherio/oui-lookup/compare/v0.1.0...v0.2.0
 [0.1.0]: https://github.com/yabowarcherio/oui-lookup/releases/tag/v0.1.0

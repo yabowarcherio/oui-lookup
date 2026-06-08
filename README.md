@@ -69,9 +69,15 @@ Arguments:
   <MAC>...  MAC addresses or OUI prefixes to look up. Use `-` to read from stdin.
 
 Options:
-      --json   Emit results as a JSON array
-      --quiet  Suppress "(unknown)" lines for unmatched addresses
-  -h, --help   Print help
+      --json            Emit results as a JSON array
+      --format <FORMAT> Output format: text (default), tsv, or csv
+  -i, --input <FILE>    Read addresses from a file, one per line (repeatable)
+      --quiet           Suppress "(unknown)" lines for unmatched addresses
+      --class           Also print the address class (unicast/multicast/...)
+      --search <TEXT>   Print OUIs whose vendor name contains TEXT, then exit
+      --limit <N>       Cap the rows printed by --search (0 = no limit)
+      --count           Print how many OUIs are embedded, then exit
+  -h, --help            Print help
   -V, --version
 ```
 
@@ -85,10 +91,12 @@ oui-lookup 001122334455          # bare
 oui-lookup 00:11:22              # just the OUI
 ```
 
-Read many addresses from stdin:
+Read many addresses from stdin, a file, or both:
 
 ```sh
 arp -a | grep -oE '([0-9a-f]{2}:){5}[0-9a-f]{2}' | oui-lookup -
+oui-lookup --input macs.txt              # one address per line; # comments ok
+oui-lookup --format csv -i macs.txt > vendors.csv
 ```
 
 Show the address class alongside the vendor:
@@ -121,11 +129,15 @@ assert_eq!(v.prefix, "28:CF:E9");
 ## More library helpers
 
 ```rust
-use oui_lookup::{lookup_many, is_registered, parse_mac48, to_eui64, is_multicast};
+use oui_lookup::{lookup_many, lookup_vendor_many, is_registered, parse_mac48, to_eui64, is_multicast};
 
 // Batch lookups, order preserved.
 let names = lookup_many(["a4:83:e7:00:00:00", "28:cf:e9:11:22:33"]);
 assert_eq!(names.len(), 2);
+
+// Same, but each result is an owned `Vendor` (prefix + name), ready to serialize.
+let vendors = lookup_vendor_many(["a4:83:e7:00:00:00", "28:cf:e9:11:22:33"]);
+assert_eq!(vendors.len(), 2);
 
 // Cheap membership check.
 assert!(is_registered("a4:83:e7:00:00:00") || !is_registered("a4:83:e7:00:00:00"));
