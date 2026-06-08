@@ -6,6 +6,16 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+## [0.3.0]
+
+### Added
+
+- `entries()` iterator and `Entry` type for walking the whole registry.
+- `search()` for case-insensitive vendor-name lookup.
+- `lookup_octets()` for pre-parsed `[u8; 6]` addresses.
+- `normalize_mac()` to canonicalize any MAC spelling.
+- CLI `--search` flag.
+
 ## [0.2.0]
 
 ### Added
@@ -34,6 +44,7 @@ Initial release.
 - `serde` feature for deriving serde traits on the `Vendor` type.
 - Criterion benchmark for the lookup hot path.
 
-[Unreleased]: https://github.com/yabowarcherio/oui-lookup/compare/v0.2.0...HEAD
+[Unreleased]: https://github.com/yabowarcherio/oui-lookup/compare/v0.3.0...HEAD
+[0.3.0]: https://github.com/yabowarcherio/oui-lookup/compare/v0.2.0...v0.3.0
 [0.2.0]: https://github.com/yabowarcherio/oui-lookup/compare/v0.1.0...v0.2.0
 [0.1.0]: https://github.com/yabowarcherio/oui-lookup/releases/tag/v0.1.0
