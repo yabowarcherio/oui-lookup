@@ -64,3 +64,14 @@ fn search_no_match_exits_one() {
         .unwrap();
     assert_eq!(out.status.code(), Some(1));
 }
+
+#[test]
+fn search_limit_caps_rows() {
+    let out = bin()
+        .args(["--search", "inc", "--limit", "3"])
+        .output()
+        .unwrap();
+    let s = String::from_utf8(out.stdout).unwrap();
+    let rows = s.lines().filter(|l| !l.is_empty()).count();
+    assert!(rows <= 3, "got {rows} rows");
+}
