@@ -118,3 +118,12 @@ fn search_empty_needle_matches_all() {
     use oui_lookup::{search, ENTRY_COUNT};
     assert_eq!(search("").count(), ENTRY_COUNT);
 }
+
+#[test]
+fn normalize_mac_canonicalizes_spellings() {
+    use oui_lookup::normalize_mac;
+    for spelling in ["00-11-22-33-44-55", "0011.2233.4455", "001122334455"] {
+        assert_eq!(normalize_mac(spelling).unwrap(), "00:11:22:33:44:55");
+    }
+    assert!(normalize_mac("00:11:22").is_err());
+}
