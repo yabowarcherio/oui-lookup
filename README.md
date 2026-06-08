@@ -136,6 +136,28 @@ assert!(is_multicast(mac));
 let _eui64 = to_eui64(mac);
 ```
 
+## Searching and iterating
+
+```rust
+use oui_lookup::{search, entries};
+
+// Find every OUI registered to a vendor (case-insensitive substring).
+for e in search("raspberry") {
+    println!("{} {}", e.prefix_str(), e.name);
+}
+
+// Or walk the entire embedded table.
+let total = entries().count();
+assert!(total > 10_000);
+```
+
+From the CLI:
+
+```sh
+oui-lookup --search "raspberry pi"
+oui-lookup --count          # how many OUIs are embedded
+```
+
 ## How the data is embedded
 
 1. `data/oui.tsv.gz` — a gzip-compressed `PREFIX\tVendor` snapshot of the IEEE
