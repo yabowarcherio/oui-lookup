@@ -172,6 +172,22 @@ where
     macs.into_iter().map(|m| lookup(m.as_ref())).collect()
 }
 
+/// Look up many MAC addresses at once, returning an owned [`Vendor`] per input.
+///
+/// Like [`lookup_many`], but each element carries both the canonical prefix and
+/// the name as owned strings — convenient for serialization or when the results
+/// must outlive the borrow. Order matches the input; an element is `None` if the
+/// input is unparseable or its OUI is unregistered.
+pub fn lookup_vendor_many<I, S>(macs: I) -> Vec<Option<Vendor>>
+where
+    I: IntoIterator<Item = S>,
+    S: AsRef<str>,
+{
+    macs.into_iter()
+        .map(|m| lookup_vendor(m.as_ref()))
+        .collect()
+}
+
 /// A single entry from the embedded OUI table.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct Entry {
@@ -245,5 +261,27 @@ mod tests {
     #[test]
     fn entry_count_exposed() {
         assert_eq!(ENTRY_COUNT, db::ENTRY_COUNT);
+    }
+
+    #[test]
+    fn lookup_vendor_many_preserves_order_and_gaps() {
+        let out = lookup_vendor_many(["FF:FF:FF:00:00:00", "garbage", "FF:FF:FF"]);
+        assert_eq!(out.len(), 3);
+        // Unregistered and unparseable inputs both collapse to None.
+        assert_eq!(out[0], None);
+        assert_eq!(out[1], None);
+        // A registered OUI (if present) round-trips its prefix.
+        if let Some(v) = &out[2] {
+            assert_eq!(v.prefix, "FF:FF:FF");
+        }
+    }
+
+    #[test]
+    fn lookup_vendor_many_matches_singular() {
+        let macs = ["00:11:22:33:44:55", "a4:83:e7:00:00:00", "zz"];
+        let many = lookup_vendor_many(macs);
+        for (m, got) in macs.iter().zip(many) {
+            assert_eq!(lookup_vendor(m), got);
+        }
     }
 }
