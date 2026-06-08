@@ -45,8 +45,12 @@ struct Cli {
 
     /// Search the registry for vendors whose name contains this text, print
     /// their OUI prefixes, and exit.
-    #[arg(long, value_name = "TEXT", exclusive = true)]
+    #[arg(long, value_name = "TEXT")]
     search: Option<String>,
+
+    /// Limit the number of rows printed by --search (0 = no limit).
+    #[arg(long, value_name = "N", default_value_t = 0, requires = "search")]
+    limit: usize,
 }
 
 /// One resolved (or unresolved) lookup result.
