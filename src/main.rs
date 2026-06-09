@@ -174,6 +174,18 @@ fn main() -> ExitCode {
             let vendor = r.vendor.as_deref().unwrap_or("");
             let _ = writeln!(out, "{prefix}\t{vendor}");
         }
+    } else if cli.format == Format::Csv {
+        for r in &records {
+            let prefix = r.prefix.as_deref().unwrap_or(&r.input);
+            // Quote the vendor name in case it contains a comma.
+            let vendor = r.vendor.as_deref().unwrap_or("");
+            if vendor.contains(',') || vendor.contains('"') {
+                let escaped = vendor.replace('"', "\"\"");
+                let _ = writeln!(out, "{prefix},\"{escaped}\"");
+            } else {
+                let _ = writeln!(out, "{prefix},{vendor}");
+            }
+        }
     } else {
         for r in &records {
             if let Some(err) = &r.error {
