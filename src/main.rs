@@ -168,6 +168,12 @@ fn main() -> ExitCode {
                 return ExitCode::from(2);
             }
         }
+    } else if cli.format == Format::Tsv {
+        for r in &records {
+            let prefix = r.prefix.as_deref().unwrap_or(&r.input);
+            let vendor = r.vendor.as_deref().unwrap_or("");
+            let _ = writeln!(out, "{prefix}\t{vendor}");
+        }
     } else {
         for r in &records {
             if let Some(err) = &r.error {
