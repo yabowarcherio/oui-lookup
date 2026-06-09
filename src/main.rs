@@ -9,8 +9,19 @@
 use std::io::{self, BufRead, Write};
 use std::process::ExitCode;
 
-use clap::Parser;
+use clap::{Parser, ValueEnum};
 use oui_lookup::{classify, format_oui, parse_mac48, parse_oui, search};
+
+/// Output format for lookup results.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, ValueEnum)]
+enum Format {
+    /// Human-readable text (default).
+    Text,
+    /// Tab-separated values (OUI TAB vendor).
+    Tsv,
+    /// Comma-separated values (OUI,vendor).
+    Csv,
+}
 
 /// Offline MAC-address vendor (OUI) lookup.
 #[derive(Parser, Debug)]
@@ -51,6 +62,10 @@ struct Cli {
     /// Limit the number of rows printed by --search (0 = no limit).
     #[arg(long, value_name = "N", default_value_t = 0, requires = "search")]
     limit: usize,
+
+    /// Output format for lookup results (text, tsv, csv).
+    #[arg(long, value_enum, default_value_t = Format::Text, conflicts_with = "json")]
+    format: Format,
 }
 
 /// One resolved (or unresolved) lookup result.
