@@ -196,3 +196,21 @@ fn unique_drops_duplicate_inputs() {
     assert_eq!(s2.lines().count(), 1);
     let _ = s;
 }
+
+#[test]
+fn eui64_flag_outputs_identifier() {
+    let out = bin()
+        .args(["--eui64", "00:11:22:33:44:55"])
+        .output()
+        .unwrap();
+    assert!(out.status.success());
+    let s = String::from_utf8(out.stdout).unwrap();
+    assert_eq!(s.trim(), "02:11:22:FF:FE:33:44:55");
+}
+
+#[test]
+fn eui64_rejects_partial_mac() {
+    // Only an OUI (3 octets) is not a full MAC.
+    let out = bin().args(["--eui64", "00:11:22"]).output().unwrap();
+    assert_eq!(out.status.code(), Some(2));
+}

@@ -11,7 +11,7 @@ use std::io::{self, BufRead, Write};
 use std::process::ExitCode;
 
 use clap::{Parser, ValueEnum};
-use oui_lookup::{classify, format_oui, parse_mac48, parse_oui, search};
+use oui_lookup::{classify, format_oui, parse_mac48, parse_oui, search, to_eui64};
 
 /// Output format for lookup results.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, ValueEnum)]
@@ -81,6 +81,10 @@ struct Cli {
     /// Drop duplicate inputs, keeping the first occurrence of each.
     #[arg(long)]
     unique: bool,
+
+    /// Print the Modified EUI-64 identifier for each full MAC, then exit.
+    #[arg(long, conflicts_with_all = ["json", "class", "vendor_only"])]
+    eui64: bool,
 }
 
 /// One resolved (or unresolved) lookup result.
@@ -197,6 +201,31 @@ fn main() -> ExitCode {
 
     let stdout = io::stdout();
     let mut out = stdout.lock();
+
+    if cli.eui64 {
+        let mut bad = false;
+        for s in &inputs {
+            match parse_mac48(s) {
+                Ok(mac) => {
+                    let e = to_eui64(mac);
+                    let _ = writeln!(
+                        out,
+                        "{:02X}:{:02X}:{:02X}:{:02X}:{:02X}:{:02X}:{:02X}:{:02X}",
+                        e[0], e[1], e[2], e[3], e[4], e[5], e[6], e[7]
+                    );
+                }
+                Err(err) => {
+                    eprintln!("oui-lookup: {s:?}: {err}");
+                    bad = true;
+                }
+            }
+        }
+        return if bad {
+            ExitCode::from(2)
+        } else {
+            ExitCode::SUCCESS
+        };
+    }
 
     if cli.vendor_only {
         for r in &records {
