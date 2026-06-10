@@ -260,6 +260,25 @@ pub fn format_mac48_cisco(octets: [u8; 6]) -> String {
     )
 }
 
+/// Format a 48-bit MAC address as a lower-case, colon-separated string, e.g.
+/// `00:11:22:aa:bb:cc`.
+pub fn format_mac48_lower(octets: [u8; 6]) -> String {
+    format!(
+        "{:02x}:{:02x}:{:02x}:{:02x}:{:02x}:{:02x}",
+        octets[0], octets[1], octets[2], octets[3], octets[4], octets[5]
+    )
+}
+
+/// Format a 24-bit OUI prefix as a lower-case `aa:bb:cc` string.
+pub fn format_oui_lower(oui: u32) -> String {
+    format!(
+        "{:02x}:{:02x}:{:02x}",
+        (oui >> 16) & 0xFF,
+        (oui >> 8) & 0xFF,
+        oui & 0xFF
+    )
+}
+
 /// Format a 24-bit OUI prefix as the canonical `AA:BB:CC` string.
 pub fn format_oui(oui: u32) -> String {
     format!(
@@ -448,5 +467,11 @@ mod tests {
         ] {
             assert_eq!(parse_mac48(&s).unwrap(), m);
         }
+    }
+    #[test]
+    fn lowercase_formatters() {
+        let m = parse_mac48("AA:BB:CC:DD:EE:FF").unwrap();
+        assert_eq!(format_mac48_lower(m), "aa:bb:cc:dd:ee:ff");
+        assert_eq!(format_oui_lower(0xAABBCC), "aa:bb:cc");
     }
 }
