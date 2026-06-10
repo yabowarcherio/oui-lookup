@@ -221,6 +221,18 @@ pub fn to_eui64(octets: [u8; 6]) -> [u8; 8] {
     eui
 }
 
+/// Recover the 48-bit MAC address from a Modified EUI-64 interface identifier,
+/// the inverse of [`to_eui64`].
+///
+/// Returns `None` if the middle bytes are not the `FF:FE` marker inserted by
+/// [`to_eui64`], i.e. the EUI-64 was not derived from a 48-bit MAC.
+pub fn eui64_to_mac(eui: [u8; 8]) -> Option<[u8; 6]> {
+    if eui[3] != 0xFF || eui[4] != 0xFE {
+        return None;
+    }
+    Some([eui[0] ^ 0x02, eui[1], eui[2], eui[5], eui[6], eui[7]])
+}
+
 /// Format a full 48-bit MAC address as the canonical colon-separated string,
 /// e.g. `00:11:22:33:44:55`.
 pub fn format_mac48(octets: [u8; 6]) -> String {
@@ -394,5 +406,15 @@ mod tests {
     fn detects_zero_address() {
         assert!(is_zero(parse_mac48("00:00:00:00:00:00").unwrap()));
         assert!(!is_zero(parse_mac48("00:00:00:00:00:01").unwrap()));
+    }
+    #[test]
+    fn eui64_round_trips_mac() {
+        let mac = parse_mac48("00:11:22:33:44:55").unwrap();
+        let eui = to_eui64(mac);
+        assert_eq!(eui64_to_mac(eui), Some(mac));
+        // Not a MAC-derived EUI-64 (no FF:FE marker).
+        let mut bad = eui;
+        bad[3] = 0x00;
+        assert_eq!(eui64_to_mac(bad), None);
     }
 }
