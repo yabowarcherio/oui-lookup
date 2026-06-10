@@ -167,3 +167,32 @@ fn vendor_only_prints_just_names() {
     assert!(!lines[0].is_empty()); // known vendor
     assert_eq!(lines[1], ""); // unknown -> blank
 }
+
+#[test]
+fn unique_drops_duplicate_inputs() {
+    let out = bin()
+        .args([
+            "--unique",
+            "--vendor-only",
+            "a4:83:e7:00:00:00",
+            "a4:83:e7:11:22:33",
+            "ff:ff:ff:00:00:00",
+        ])
+        .output()
+        .unwrap();
+    let s = String::from_utf8(out.stdout).unwrap();
+    // The two Apple OUIs differ only past the OUI but as strings are distinct,
+    // so use identical strings to test dedup.
+    let out2 = bin()
+        .args([
+            "--unique",
+            "--vendor-only",
+            "a4:83:e7:00:00:00",
+            "a4:83:e7:00:00:00",
+        ])
+        .output()
+        .unwrap();
+    let s2 = String::from_utf8(out2.stdout).unwrap();
+    assert_eq!(s2.lines().count(), 1);
+    let _ = s;
+}

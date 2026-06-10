@@ -77,6 +77,10 @@ struct Cli {
     /// one per line — convenient for shell pipelines.
     #[arg(long, conflicts_with_all = ["json", "class"])]
     vendor_only: bool,
+
+    /// Drop duplicate inputs, keeping the first occurrence of each.
+    #[arg(long)]
+    unique: bool,
 }
 
 /// One resolved (or unresolved) lookup result.
@@ -176,13 +180,18 @@ fn main() -> ExitCode {
         };
     }
 
-    let inputs = match collect_inputs(&cli.addrs, &cli.input) {
+    let mut inputs = match collect_inputs(&cli.addrs, &cli.input) {
         Ok(v) => v,
         Err(e) => {
             eprintln!("oui-lookup: failed to read input: {e}");
             return ExitCode::from(2);
         }
     };
+
+    if cli.unique {
+        let mut seen = std::collections::HashSet::new();
+        inputs.retain(|s| seen.insert(s.clone()));
+    }
 
     let records: Vec<Record> = inputs.iter().map(|s| resolve(s)).collect();
 
