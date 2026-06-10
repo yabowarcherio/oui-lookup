@@ -242,6 +242,24 @@ pub fn format_mac48(octets: [u8; 6]) -> String {
     )
 }
 
+/// Format a 48-bit MAC address with hyphen separators, e.g.
+/// `00-11-22-33-44-55` (the IEEE/Windows convention).
+pub fn format_mac48_hyphen(octets: [u8; 6]) -> String {
+    format!(
+        "{:02X}-{:02X}-{:02X}-{:02X}-{:02X}-{:02X}",
+        octets[0], octets[1], octets[2], octets[3], octets[4], octets[5]
+    )
+}
+
+/// Format a 48-bit MAC address in Cisco's dotted notation, e.g.
+/// `0011.2233.4455`.
+pub fn format_mac48_cisco(octets: [u8; 6]) -> String {
+    format!(
+        "{:02x}{:02x}.{:02x}{:02x}.{:02x}{:02x}",
+        octets[0], octets[1], octets[2], octets[3], octets[4], octets[5]
+    )
+}
+
 /// Format a 24-bit OUI prefix as the canonical `AA:BB:CC` string.
 pub fn format_oui(oui: u32) -> String {
     format!(
@@ -416,5 +434,19 @@ mod tests {
         let mut bad = eui;
         bad[3] = 0x00;
         assert_eq!(eui64_to_mac(bad), None);
+    }
+    #[test]
+    fn alternate_formatters() {
+        let m = parse_mac48("00:11:22:33:44:55").unwrap();
+        assert_eq!(format_mac48_hyphen(m), "00-11-22-33-44-55");
+        assert_eq!(format_mac48_cisco(m), "0011.2233.4455");
+        // All formats must re-parse to the same octets.
+        for s in [
+            format_mac48(m),
+            format_mac48_hyphen(m),
+            format_mac48_cisco(m),
+        ] {
+            assert_eq!(parse_mac48(&s).unwrap(), m);
+        }
     }
 }
