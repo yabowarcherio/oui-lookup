@@ -6,6 +6,16 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+### Added
+
+- Address helpers: `is_unicast`, `is_zero`, `eui64_to_mac` (inverse of
+  `to_eui64`), and `MacKind::is_unicast`/`is_global`/`is_group`.
+- Formatters: `format_mac48_hyphen`, `format_mac48_cisco`, `format_mac48_lower`,
+  and `format_oui_lower`.
+- Lookup: `lookup_oui` for raw integer OUI prefixes; `vendors()` listing the
+  distinct registry vendor names.
+- CLI: `--vendor-only`, `--unique`, and `--eui64`.
+
 ## [0.4.0]
 
 ### Added

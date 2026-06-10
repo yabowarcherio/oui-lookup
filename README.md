@@ -74,6 +74,9 @@ Options:
   -i, --input <FILE>    Read addresses from a file, one per line (repeatable)
       --quiet           Suppress "(unknown)" lines for unmatched addresses
       --class           Also print the address class (unicast/multicast/...)
+      --vendor-only     Print only the vendor name per input (blank if unknown)
+      --unique          Drop duplicate inputs, keeping the first occurrence
+      --eui64           Print the Modified EUI-64 identifier per full MAC
       --search <TEXT>   Print OUIs whose vendor name contains TEXT, then exit
       --limit <N>       Cap the rows printed by --search (0 = no limit)
       --count           Print how many OUIs are embedded, then exit
