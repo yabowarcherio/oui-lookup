@@ -72,6 +72,11 @@ struct Cli {
     /// Output format for lookup results (text, tsv, csv).
     #[arg(long, value_enum, default_value_t = Format::Text, conflicts_with = "json")]
     format: Format,
+
+    /// Print only the vendor name for each input (empty line if unknown),
+    /// one per line — convenient for shell pipelines.
+    #[arg(long, conflicts_with_all = ["json", "class"])]
+    vendor_only: bool,
 }
 
 /// One resolved (or unresolved) lookup result.
@@ -184,7 +189,11 @@ fn main() -> ExitCode {
     let stdout = io::stdout();
     let mut out = stdout.lock();
 
-    if cli.json {
+    if cli.vendor_only {
+        for r in &records {
+            let _ = writeln!(out, "{}", r.vendor.as_deref().unwrap_or(""));
+        }
+    } else if cli.json {
         match serde_json::to_writer_pretty(&mut out, &records) {
             Ok(()) => {
                 let _ = writeln!(out);

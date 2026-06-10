@@ -154,3 +154,16 @@ fn missing_input_file_exits_two() {
         .unwrap();
     assert_eq!(out.status.code(), Some(2));
 }
+
+#[test]
+fn vendor_only_prints_just_names() {
+    let out = bin()
+        .args(["--vendor-only", "a4:83:e7:00:00:00", "ff:ff:ff:00:00:00"])
+        .output()
+        .unwrap();
+    let s = String::from_utf8(out.stdout).unwrap();
+    let lines: Vec<_> = s.lines().collect();
+    assert_eq!(lines.len(), 2);
+    assert!(!lines[0].is_empty()); // known vendor
+    assert_eq!(lines[1], ""); // unknown -> blank
+}
