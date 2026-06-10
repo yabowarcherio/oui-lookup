@@ -147,6 +147,16 @@ pub fn lookup_octets(octets: [u8; 6]) -> Option<&'static str> {
     db::lookup_prefix(oui)
 }
 
+/// Look up the vendor for a raw 24-bit OUI prefix (only the low 24 bits are
+/// used).
+///
+/// The most direct entry point when you already hold the OUI as an integer —
+/// e.g. the value returned by [`parse_oui`].
+#[inline]
+pub fn lookup_oui(oui: u32) -> Option<&'static str> {
+    db::lookup_prefix(oui & 0x00FF_FFFF)
+}
+
 /// Look up a MAC address and return the matching [`Entry`] (prefix + name),
 /// or `None` if unparseable or unregistered.
 pub fn lookup_entry(mac: &str) -> Option<Entry> {
@@ -284,5 +294,13 @@ mod tests {
         for (m, got) in macs.iter().zip(many) {
             assert_eq!(lookup_vendor(m), got);
         }
+    }
+    #[test]
+    fn lookup_oui_matches_string_lookup() {
+        // Whatever the string form resolves to, the integer form must agree.
+        let oui = parse_oui("a4:83:e7:00:00:00").unwrap();
+        assert_eq!(lookup_oui(oui), lookup("a4:83:e7:00:00:00"));
+        // High bits above 24 are ignored.
+        assert_eq!(lookup_oui(oui | 0xFF00_0000), lookup_oui(oui));
     }
 }
