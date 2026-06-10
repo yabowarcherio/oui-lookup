@@ -94,6 +94,23 @@ pub enum MacKind {
     GlobalUnicast,
 }
 
+impl MacKind {
+    /// `true` for the two unicast kinds (`LocalUnicast`, `GlobalUnicast`).
+    pub fn is_unicast(self) -> bool {
+        matches!(self, MacKind::LocalUnicast | MacKind::GlobalUnicast)
+    }
+
+    /// `true` only for a globally unique, IEEE-assigned unicast address.
+    pub fn is_global(self) -> bool {
+        matches!(self, MacKind::GlobalUnicast)
+    }
+
+    /// `true` for broadcast or multicast (group) addresses.
+    pub fn is_group(self) -> bool {
+        matches!(self, MacKind::Broadcast | MacKind::Multicast)
+    }
+}
+
 impl fmt::Display for MacKind {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         let s = match self {
@@ -124,6 +141,13 @@ pub fn classify(octets: [u8; 6]) -> MacKind {
 #[inline]
 pub fn is_multicast(octets: [u8; 6]) -> bool {
     octets[0] & 0x01 != 0
+}
+
+/// Returns `true` if the address is a unicast address — the complement of
+/// [`is_multicast`].
+#[inline]
+pub fn is_unicast(octets: [u8; 6]) -> bool {
+    !is_multicast(octets)
 }
 
 /// Returns `true` if the address is locally administered (the second-least-
@@ -340,5 +364,23 @@ mod tests {
     fn detects_broadcast() {
         assert!(is_broadcast(parse_mac48("ff:ff:ff:ff:ff:ff").unwrap()));
         assert!(!is_broadcast(parse_mac48("ff:ff:ff:00:00:00").unwrap()));
+    }
+    #[test]
+    fn unicast_is_complement_of_multicast() {
+        let g = parse_mac48("a4:83:e7:00:00:01").unwrap();
+        assert!(is_unicast(g) && !is_multicast(g));
+        let m = parse_mac48("01:00:5e:00:00:01").unwrap();
+        assert!(!is_unicast(m) && is_multicast(m));
+    }
+
+    #[test]
+    fn mackind_predicates() {
+        assert!(MacKind::GlobalUnicast.is_unicast());
+        assert!(MacKind::GlobalUnicast.is_global());
+        assert!(!MacKind::LocalUnicast.is_global());
+        assert!(MacKind::LocalUnicast.is_unicast());
+        assert!(MacKind::Broadcast.is_group());
+        assert!(MacKind::Multicast.is_group());
+        assert!(!MacKind::GlobalUnicast.is_group());
     }
 }
