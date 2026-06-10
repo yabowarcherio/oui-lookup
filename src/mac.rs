@@ -164,6 +164,13 @@ pub fn is_broadcast(octets: [u8; 6]) -> bool {
     octets == [0xFF; 6]
 }
 
+/// Returns `true` if the address is the all-zero address `00:00:00:00:00:00`,
+/// which often signals an unset or unknown hardware address.
+#[inline]
+pub fn is_zero(octets: [u8; 6]) -> bool {
+    octets == [0x00; 6]
+}
+
 /// Parse a full 48-bit MAC address into its six octets.
 ///
 /// Unlike [`parse_oui`], this requires all six octets (twelve hex digits) to be
@@ -382,5 +389,10 @@ mod tests {
         assert!(MacKind::Broadcast.is_group());
         assert!(MacKind::Multicast.is_group());
         assert!(!MacKind::GlobalUnicast.is_group());
+    }
+    #[test]
+    fn detects_zero_address() {
+        assert!(is_zero(parse_mac48("00:00:00:00:00:00").unwrap()));
+        assert!(!is_zero(parse_mac48("00:00:00:00:00:01").unwrap()));
     }
 }
