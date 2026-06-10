@@ -157,6 +157,20 @@ pub fn lookup_oui(oui: u32) -> Option<&'static str> {
     db::lookup_prefix(oui & 0x00FF_FFFF)
 }
 
+/// Return every distinct vendor name in the embedded registry, sorted
+/// alphabetically.
+///
+/// A single organization usually holds several OUI prefixes, so this collapses
+/// the ~`ENTRY_COUNT` entries down to the set of unique names. This allocates
+/// and sorts, so it is a cold helper — cache the result if you need it
+/// repeatedly.
+pub fn vendors() -> Vec<&'static str> {
+    let mut names: Vec<&'static str> = entries().map(|e| e.name).collect();
+    names.sort_unstable();
+    names.dedup();
+    names
+}
+
 /// Look up a MAC address and return the matching [`Entry`] (prefix + name),
 /// or `None` if unparseable or unregistered.
 pub fn lookup_entry(mac: &str) -> Option<Entry> {
@@ -302,5 +316,13 @@ mod tests {
         assert_eq!(lookup_oui(oui), lookup("a4:83:e7:00:00:00"));
         // High bits above 24 are ignored.
         assert_eq!(lookup_oui(oui | 0xFF00_0000), lookup_oui(oui));
+    }
+    #[test]
+    fn vendors_are_unique_and_sorted() {
+        let v = vendors();
+        assert!(!v.is_empty());
+        assert!(v.len() <= ENTRY_COUNT);
+        // Sorted and deduplicated.
+        assert!(v.windows(2).all(|w| w[0] < w[1]));
     }
 }
