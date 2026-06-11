@@ -94,6 +94,11 @@ struct Cli {
     #[arg(long, conflicts_with_all = ["json", "class", "vendor_only", "eui64"])]
     normalize: bool,
 
+    /// Print the IPv6 link-local address (fe80::/64) for each full MAC, then
+    /// exit.
+    #[arg(long, conflicts_with_all = ["json", "class", "vendor_only", "eui64", "normalize"])]
+    link_local: bool,
+
     /// With --normalize/--eui64 output, use the lower-case colon form.
     #[arg(long)]
     lower: bool,
@@ -232,6 +237,26 @@ fn main() -> ExitCode {
             match normalized {
                 Ok(text) => {
                     let _ = writeln!(out, "{text}");
+                }
+                Err(err) => {
+                    eprintln!("oui-lookup: {s:?}: {err}");
+                    bad = true;
+                }
+            }
+        }
+        return if bad {
+            ExitCode::from(2)
+        } else {
+            ExitCode::SUCCESS
+        };
+    }
+
+    if cli.link_local {
+        let mut bad = false;
+        for s in &inputs {
+            match parse_mac48(s) {
+                Ok(mac) => {
+                    let _ = writeln!(out, "{}", oui_lookup::link_local_ipv6(mac));
                 }
                 Err(err) => {
                     eprintln!("oui-lookup: {s:?}: {err}");

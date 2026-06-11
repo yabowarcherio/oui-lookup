@@ -254,3 +254,14 @@ fn normalize_rejects_partial() {
     let out = bin().args(["--normalize", "aa:bb:cc"]).output().unwrap();
     assert_eq!(out.status.code(), Some(2));
 }
+
+#[test]
+fn link_local_flag_outputs_fe80() {
+    let out = bin()
+        .args(["--link-local", "00:11:22:33:44:55"])
+        .output()
+        .unwrap();
+    assert!(out.status.success());
+    let s = String::from_utf8(out.stdout).unwrap();
+    assert_eq!(s.trim(), "fe80::211:22ff:fe33:4455");
+}
