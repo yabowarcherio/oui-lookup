@@ -147,6 +147,26 @@ pub fn lookup_octets(octets: [u8; 6]) -> Option<&'static str> {
     db::lookup_prefix(oui)
 }
 
+/// Look up a pre-parsed address and return the matching [`Entry`].
+///
+/// The octet equivalent of [`lookup_entry`]; returns `None` if the OUI is
+/// unregistered.
+pub fn lookup_entry_octets(octets: [u8; 6]) -> Option<Entry> {
+    let oui = (u32::from(octets[0]) << 16) | (u32::from(octets[1]) << 8) | u32::from(octets[2]);
+    db::lookup_prefix(oui).map(|name| Entry { prefix: oui, name })
+}
+
+/// Look up a pre-parsed address and return an owned [`Vendor`].
+///
+/// The octet equivalent of [`lookup_vendor`].
+pub fn lookup_vendor_octets(octets: [u8; 6]) -> Option<Vendor> {
+    let oui = (u32::from(octets[0]) << 16) | (u32::from(octets[1]) << 8) | u32::from(octets[2]);
+    db::lookup_prefix(oui).map(|name| Vendor {
+        prefix: mac::format_oui(oui),
+        name: name.to_string(),
+    })
+}
+
 /// Look up the vendor for a raw 24-bit OUI prefix (only the low 24 bits are
 /// used).
 ///
@@ -342,5 +362,20 @@ mod tests {
         };
         assert_eq!(e.octets(), [0xA4, 0x83, 0xE7]);
         assert_eq!(e.prefix_str(), "A4:83:E7");
+    }
+    #[test]
+    fn octet_lookups_agree_with_string_lookups() {
+        let octets = parse_mac48("a4:83:e7:11:22:33").unwrap();
+        assert_eq!(
+            lookup_entry_octets(octets).map(|e| e.name),
+            lookup("a4:83:e7:11:22:33")
+        );
+        assert_eq!(
+            lookup_vendor_octets(octets),
+            lookup_vendor("a4:83:e7:11:22:33")
+        );
+        // Unregistered prefix.
+        let ff = parse_mac48("ff:ff:ff:00:00:00").unwrap();
+        assert!(lookup_entry_octets(ff).is_none());
     }
 }
