@@ -109,17 +109,22 @@ impl MacKind {
     pub fn is_group(self) -> bool {
         matches!(self, MacKind::Broadcast | MacKind::Multicast)
     }
-}
 
-impl fmt::Display for MacKind {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        let s = match self {
+    /// The kind as a static string slice, without allocating. This is the same
+    /// text produced by the [`Display`](fmt::Display) impl.
+    pub fn as_str(self) -> &'static str {
+        match self {
             MacKind::Broadcast => "broadcast",
             MacKind::Multicast => "multicast",
             MacKind::LocalUnicast => "local-unicast",
             MacKind::GlobalUnicast => "global-unicast",
-        };
-        f.write_str(s)
+        }
+    }
+}
+
+impl fmt::Display for MacKind {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.write_str(self.as_str())
     }
 }
 
@@ -473,5 +478,16 @@ mod tests {
         let m = parse_mac48("AA:BB:CC:DD:EE:FF").unwrap();
         assert_eq!(format_mac48_lower(m), "aa:bb:cc:dd:ee:ff");
         assert_eq!(format_oui_lower(0xAABBCC), "aa:bb:cc");
+    }
+    #[test]
+    fn mackind_as_str_matches_display() {
+        for k in [
+            MacKind::Broadcast,
+            MacKind::Multicast,
+            MacKind::LocalUnicast,
+            MacKind::GlobalUnicast,
+        ] {
+            assert_eq!(k.as_str(), k.to_string());
+        }
     }
 }
