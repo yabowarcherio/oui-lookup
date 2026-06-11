@@ -14,7 +14,13 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
   and `format_oui_lower`.
 - Lookup: `lookup_oui` for raw integer OUI prefixes; `vendors()` listing the
   distinct registry vendor names.
-- CLI: `--vendor-only`, `--unique`, and `--eui64`.
+- Octet/byte lookups: `lookup_entry_octets`, `lookup_vendor_octets`,
+  `lookup_octets_many`, and `Entry::octets()`.
+- `prefixes_for(name)` to enumerate every OUI of an exact vendor name.
+- `MacKind::as_str()` (non-allocating) and `normalize_mac_lower`.
+- `link_local_ipv6()` deriving the `fe80::/64` address from a MAC.
+- CLI: `--vendor-only`, `--unique`, `--eui64`, `--vendors`, `--normalize`,
+  `--lower`, and `--link-local`.
 
 ## [0.4.0]
 

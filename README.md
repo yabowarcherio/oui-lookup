@@ -77,6 +77,10 @@ Options:
       --vendor-only     Print only the vendor name per input (blank if unknown)
       --unique          Drop duplicate inputs, keeping the first occurrence
       --eui64           Print the Modified EUI-64 identifier per full MAC
+      --link-local      Print the IPv6 link-local (fe80::/64) per full MAC
+      --normalize       Print the canonical form of each full MAC
+      --lower           Use the lower-case colon form (with --normalize/--eui64)
+      --vendors         Print every distinct vendor name, sorted, then exit
       --search <TEXT>   Print OUIs whose vendor name contains TEXT, then exit
       --limit <N>       Cap the rows printed by --search (0 = no limit)
       --count           Print how many OUIs are embedded, then exit
