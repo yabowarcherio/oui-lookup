@@ -227,3 +227,30 @@ fn vendors_flag_lists_names() {
     sorted.sort();
     assert_eq!(lines, sorted);
 }
+
+#[test]
+fn normalize_flag_canonicalizes() {
+    let out = bin()
+        .args(["--normalize", "aabb.ccdd.eeff"])
+        .output()
+        .unwrap();
+    assert!(out.status.success());
+    let s = String::from_utf8(out.stdout).unwrap();
+    assert_eq!(s.trim(), "AA:BB:CC:DD:EE:FF");
+}
+
+#[test]
+fn normalize_lower_flag() {
+    let out = bin()
+        .args(["--normalize", "--lower", "AA-BB-CC-DD-EE-FF"])
+        .output()
+        .unwrap();
+    let s = String::from_utf8(out.stdout).unwrap();
+    assert_eq!(s.trim(), "aa:bb:cc:dd:ee:ff");
+}
+
+#[test]
+fn normalize_rejects_partial() {
+    let out = bin().args(["--normalize", "aa:bb:cc"]).output().unwrap();
+    assert_eq!(out.status.code(), Some(2));
+}

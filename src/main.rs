@@ -89,6 +89,14 @@ struct Cli {
     /// Print every distinct vendor name in the registry, sorted, then exit.
     #[arg(long, exclusive = true)]
     vendors: bool,
+
+    /// Print the canonical form of each full MAC, then exit.
+    #[arg(long, conflicts_with_all = ["json", "class", "vendor_only", "eui64"])]
+    normalize: bool,
+
+    /// With --normalize/--eui64 output, use the lower-case colon form.
+    #[arg(long)]
+    lower: bool,
 }
 
 /// One resolved (or unresolved) lookup result.
@@ -213,17 +221,49 @@ fn main() -> ExitCode {
     let stdout = io::stdout();
     let mut out = stdout.lock();
 
+    if cli.normalize {
+        let mut bad = false;
+        for s in &inputs {
+            let normalized = if cli.lower {
+                oui_lookup::normalize_mac_lower(s)
+            } else {
+                oui_lookup::normalize_mac(s)
+            };
+            match normalized {
+                Ok(text) => {
+                    let _ = writeln!(out, "{text}");
+                }
+                Err(err) => {
+                    eprintln!("oui-lookup: {s:?}: {err}");
+                    bad = true;
+                }
+            }
+        }
+        return if bad {
+            ExitCode::from(2)
+        } else {
+            ExitCode::SUCCESS
+        };
+    }
+
     if cli.eui64 {
         let mut bad = false;
         for s in &inputs {
             match parse_mac48(s) {
                 Ok(mac) => {
                     let e = to_eui64(mac);
-                    let _ = writeln!(
-                        out,
-                        "{:02X}:{:02X}:{:02X}:{:02X}:{:02X}:{:02X}:{:02X}:{:02X}",
-                        e[0], e[1], e[2], e[3], e[4], e[5], e[6], e[7]
-                    );
+                    let line = if cli.lower {
+                        format!(
+                            "{:02x}:{:02x}:{:02x}:{:02x}:{:02x}:{:02x}:{:02x}:{:02x}",
+                            e[0], e[1], e[2], e[3], e[4], e[5], e[6], e[7]
+                        )
+                    } else {
+                        format!(
+                            "{:02X}:{:02X}:{:02X}:{:02X}:{:02X}:{:02X}:{:02X}:{:02X}",
+                            e[0], e[1], e[2], e[3], e[4], e[5], e[6], e[7]
+                        )
+                    };
+                    let _ = writeln!(out, "{line}");
                 }
                 Err(err) => {
                     eprintln!("oui-lookup: {s:?}: {err}");
