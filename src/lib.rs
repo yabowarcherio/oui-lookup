@@ -274,6 +274,17 @@ pub fn search(needle: &str) -> impl Iterator<Item = Entry> + '_ {
     entries().filter(move |e| e.name.to_ascii_lowercase().contains(&needle))
 }
 
+/// Find every OUI prefix registered to a vendor whose name matches `name`
+/// **exactly**, case-insensitively.
+///
+/// Unlike [`search`] (a substring match), this returns only entries whose full
+/// name equals `name` — useful for enumerating all the blocks a single
+/// organization holds.
+pub fn prefixes_for(name: &str) -> impl Iterator<Item = Entry> + '_ {
+    let name = name.to_ascii_lowercase();
+    entries().filter(move |e| e.name.to_ascii_lowercase() == name)
+}
+
 /// Count how many OUI prefixes are registered to vendors matching `needle`.
 ///
 /// Convenience wrapper over [`search`] for the common "how many?" question.
@@ -377,5 +388,20 @@ mod tests {
         // Unregistered prefix.
         let ff = parse_mac48("ff:ff:ff:00:00:00").unwrap();
         assert!(lookup_entry_octets(ff).is_none());
+    }
+    #[test]
+    fn prefixes_for_is_exact_match() {
+        // Pick a real vendor name from the table and ensure all returned
+        // entries carry exactly that name.
+        if let Some(first) = entries().next() {
+            let name = first.name;
+            let all: Vec<_> = prefixes_for(name).collect();
+            assert!(!all.is_empty());
+            assert!(all.iter().all(|e| e.name.eq_ignore_ascii_case(name)));
+            // Exact match excludes pure-substring hits.
+            assert!(prefixes_for("definitely not a real vendor xyz")
+                .next()
+                .is_none());
+        }
     }
 }
