@@ -227,6 +227,15 @@ impl Entry {
     pub fn prefix_str(&self) -> String {
         mac::format_oui(self.prefix)
     }
+
+    /// The OUI prefix as its three bytes, most-significant first.
+    pub fn octets(&self) -> [u8; 3] {
+        [
+            (self.prefix >> 16) as u8,
+            (self.prefix >> 8) as u8,
+            self.prefix as u8,
+        ]
+    }
 }
 
 impl std::fmt::Display for Entry {
@@ -324,5 +333,14 @@ mod tests {
         assert!(v.len() <= ENTRY_COUNT);
         // Sorted and deduplicated.
         assert!(v.windows(2).all(|w| w[0] < w[1]));
+    }
+    #[test]
+    fn entry_octets_match_prefix() {
+        let e = Entry {
+            prefix: 0xA483E7,
+            name: "Apple",
+        };
+        assert_eq!(e.octets(), [0xA4, 0x83, 0xE7]);
+        assert_eq!(e.prefix_str(), "A4:83:E7");
     }
 }
