@@ -137,6 +137,17 @@ pub fn normalize_mac(mac: &str) -> Result<String, ParseMacError> {
     Ok(mac::format_mac48(mac::parse_mac48(mac)?))
 }
 
+/// Like [`normalize_mac`], but produces the lower-case canonical form
+/// (`aa:bb:cc:dd:ee:ff`).
+///
+/// # Errors
+///
+/// Returns the same [`ParseMacError`] as [`parse_mac48`] if the input is not a
+/// full, valid 48-bit address.
+pub fn normalize_mac_lower(mac: &str) -> Result<String, ParseMacError> {
+    Ok(mac::format_mac48_lower(mac::parse_mac48(mac)?))
+}
+
 /// Look up the vendor for a MAC address already parsed into octets.
 ///
 /// Useful when you have the raw bytes (e.g. from an ARP table) and want to
@@ -403,5 +414,17 @@ mod tests {
                 .next()
                 .is_none());
         }
+    }
+    #[test]
+    fn normalize_lower_round_trips() {
+        assert_eq!(
+            normalize_mac_lower("AA-BB-CC-DD-EE-FF").unwrap(),
+            "aa:bb:cc:dd:ee:ff"
+        );
+        assert_eq!(
+            normalize_mac("aa:bb:cc:dd:ee:ff").unwrap(),
+            "AA:BB:CC:DD:EE:FF"
+        );
+        assert!(normalize_mac_lower("aa:bb:cc").is_err());
     }
 }
