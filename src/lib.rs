@@ -229,6 +229,15 @@ where
     macs.into_iter().map(|m| lookup(m.as_ref())).collect()
 }
 
+/// Look up many pre-parsed addresses at once, in input order. The octet
+/// equivalent of [`lookup_many`].
+pub fn lookup_octets_many<I>(macs: I) -> Vec<Option<&'static str>>
+where
+    I: IntoIterator<Item = [u8; 6]>,
+{
+    macs.into_iter().map(lookup_octets).collect()
+}
+
 /// Look up many MAC addresses at once, returning an owned [`Vendor`] per input.
 ///
 /// Like [`lookup_many`], but each element carries both the canonical prefix and
@@ -427,5 +436,16 @@ mod tests {
             "AA:BB:CC:DD:EE:FF"
         );
         assert!(normalize_mac_lower("aa:bb:cc").is_err());
+    }
+    #[test]
+    fn lookup_octets_many_matches_singular() {
+        let macs = [
+            parse_mac48("a4:83:e7:00:00:00").unwrap(),
+            parse_mac48("ff:ff:ff:00:00:00").unwrap(),
+        ];
+        let many = lookup_octets_many(macs);
+        assert_eq!(many.len(), 2);
+        assert_eq!(many[0], lookup_octets(macs[0]));
+        assert_eq!(many[1], None);
     }
 }
