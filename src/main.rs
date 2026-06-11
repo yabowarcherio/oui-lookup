@@ -36,7 +36,7 @@ enum Format {
 )]
 struct Cli {
     /// MAC addresses or OUI prefixes to look up. Use `-` to read from stdin.
-    #[arg(value_name = "MAC", required_unless_present_any = ["count", "search", "input"])]
+    #[arg(value_name = "MAC", required_unless_present_any = ["count", "search", "input", "vendors"])]
     addrs: Vec<String>,
 
     /// Read addresses from a file, one per line (repeatable). Use `-` for
@@ -85,6 +85,10 @@ struct Cli {
     /// Print the Modified EUI-64 identifier for each full MAC, then exit.
     #[arg(long, conflicts_with_all = ["json", "class", "vendor_only"])]
     eui64: bool,
+
+    /// Print every distinct vendor name in the registry, sorted, then exit.
+    #[arg(long, exclusive = true)]
+    vendors: bool,
 }
 
 /// One resolved (or unresolved) lookup result.
@@ -165,6 +169,13 @@ fn main() -> ExitCode {
 
     if cli.count {
         println!("{}", oui_lookup::ENTRY_COUNT);
+        return ExitCode::SUCCESS;
+    }
+
+    if cli.vendors {
+        for name in oui_lookup::vendors() {
+            println!("{name}");
+        }
         return ExitCode::SUCCESS;
     }
 

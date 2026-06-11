@@ -214,3 +214,16 @@ fn eui64_rejects_partial_mac() {
     let out = bin().args(["--eui64", "00:11:22"]).output().unwrap();
     assert_eq!(out.status.code(), Some(2));
 }
+
+#[test]
+fn vendors_flag_lists_names() {
+    let out = bin().arg("--vendors").output().unwrap();
+    assert!(out.status.success());
+    let s = String::from_utf8(out.stdout).unwrap();
+    let lines: Vec<_> = s.lines().collect();
+    assert!(lines.len() > 1000);
+    // Output is sorted.
+    let mut sorted = lines.clone();
+    sorted.sort();
+    assert_eq!(lines, sorted);
+}
