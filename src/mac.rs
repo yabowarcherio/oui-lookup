@@ -226,6 +226,22 @@ pub fn to_eui64(octets: [u8; 6]) -> [u8; 8] {
     eui
 }
 
+/// The IPv6 link-local address (`fe80::/64`) formed from a MAC address via its
+/// Modified EUI-64 interface identifier (RFC 4291).
+pub fn link_local_ipv6(octets: [u8; 6]) -> std::net::Ipv6Addr {
+    let e = to_eui64(octets);
+    std::net::Ipv6Addr::new(
+        0xfe80,
+        0,
+        0,
+        0,
+        u16::from_be_bytes([e[0], e[1]]),
+        u16::from_be_bytes([e[2], e[3]]),
+        u16::from_be_bytes([e[4], e[5]]),
+        u16::from_be_bytes([e[6], e[7]]),
+    )
+}
+
 /// Recover the 48-bit MAC address from a Modified EUI-64 interface identifier,
 /// the inverse of [`to_eui64`].
 ///
@@ -489,5 +505,17 @@ mod tests {
         ] {
             assert_eq!(k.as_str(), k.to_string());
         }
+    }
+    #[test]
+    fn link_local_from_mac() {
+        let mac = parse_mac48("00:11:22:33:44:55").unwrap();
+        let ll = link_local_ipv6(mac);
+        // fe80::/64 prefix, EUI-64 interface id with flipped U/L bit + FF:FE.
+        assert_eq!(
+            ll,
+            "fe80::211:22ff:fe33:4455"
+                .parse::<std::net::Ipv6Addr>()
+                .unwrap()
+        );
     }
 }
