@@ -265,3 +265,19 @@ fn link_local_flag_outputs_fe80() {
     let s = String::from_utf8(out.stdout).unwrap();
     assert_eq!(s.trim(), "fe80::211:22ff:fe33:4455");
 }
+
+#[test]
+fn format_bare_strips_separators() {
+    // FF:FF:FF is guaranteed not to resolve to any registered vendor, which
+    // keeps this test independent of the embedded registry snapshot.
+    let out = bin()
+        .args(["--format", "bare", "FF:FF:FF:00:00:00"])
+        .output()
+        .unwrap();
+    let s = String::from_utf8(out.stdout).unwrap();
+    // Bare prefix is six contiguous hex digits, followed by a TAB and the
+    // (possibly empty) vendor name.
+    let first = s.lines().next().unwrap();
+    let (prefix, _) = first.split_once('\t').unwrap_or((first, ""));
+    assert_eq!(prefix, "FFFFFF");
+}
