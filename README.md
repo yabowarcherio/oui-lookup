@@ -70,7 +70,7 @@ Arguments:
 
 Options:
       --json            Emit results as a JSON array
-      --format <FORMAT> Output format: text (default), tsv, or csv
+      --format <FORMAT> Output format: text (default), tsv, csv, or bare
   -i, --input <FILE>    Read addresses from a file, one per line (repeatable)
       --quiet           Suppress "(unknown)" lines for unmatched addresses
       --class           Also print the address class (unicast/multicast/...)
@@ -153,6 +153,26 @@ assert!(is_registered("a4:83:e7:00:00:00") || !is_registered("a4:83:e7:00:00:00"
 let mac = parse_mac48("01:00:5e:00:00:01").unwrap();
 assert!(is_multicast(mac));
 let _eui64 = to_eui64(mac);
+```
+
+## Formats and prefix conversions
+
+```rust
+use oui_lookup::{
+    format_mac48, format_mac48_bare, format_mac48_cisco, format_mac48_hyphen,
+    format_mac48_lower, octets_to_oui, oui_to_octets, parse_mac48,
+};
+
+let m = parse_mac48("00:11:22:33:44:55").unwrap();
+assert_eq!(format_mac48(m),        "00:11:22:33:44:55");
+assert_eq!(format_mac48_lower(m),  "00:11:22:33:44:55");
+assert_eq!(format_mac48_hyphen(m), "00-11-22-33-44-55");
+assert_eq!(format_mac48_cisco(m),  "0011.2233.4455");
+assert_eq!(format_mac48_bare(m),   "001122334455");
+
+// 24-bit OUI <-> three bytes (both are `const fn`).
+assert_eq!(octets_to_oui([0xA4, 0x83, 0xE7]), 0xA483E7);
+assert_eq!(oui_to_octets(0xA483E7), [0xA4, 0x83, 0xE7]);
 ```
 
 ## Searching and iterating
