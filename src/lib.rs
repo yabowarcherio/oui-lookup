@@ -177,8 +177,7 @@ pub fn normalize_mac_lower(mac: &str) -> Result<String, ParseMacError> {
 /// avoid re-parsing a string.
 #[inline]
 pub fn lookup_octets(octets: [u8; 6]) -> Option<&'static str> {
-    let oui = (u32::from(octets[0]) << 16) | (u32::from(octets[1]) << 8) | u32::from(octets[2]);
-    db::lookup_prefix(oui)
+    db::lookup_prefix(mac::octets_to_oui([octets[0], octets[1], octets[2]]))
 }
 
 /// Look up a pre-parsed address and return the matching [`Entry`].
@@ -186,7 +185,7 @@ pub fn lookup_octets(octets: [u8; 6]) -> Option<&'static str> {
 /// The octet equivalent of [`lookup_entry`]; returns `None` if the OUI is
 /// unregistered.
 pub fn lookup_entry_octets(octets: [u8; 6]) -> Option<Entry> {
-    let oui = (u32::from(octets[0]) << 16) | (u32::from(octets[1]) << 8) | u32::from(octets[2]);
+    let oui = mac::octets_to_oui([octets[0], octets[1], octets[2]]);
     db::lookup_prefix(oui).map(|name| Entry { prefix: oui, name })
 }
 
@@ -194,7 +193,7 @@ pub fn lookup_entry_octets(octets: [u8; 6]) -> Option<Entry> {
 ///
 /// The octet equivalent of [`lookup_vendor`].
 pub fn lookup_vendor_octets(octets: [u8; 6]) -> Option<Vendor> {
-    let oui = (u32::from(octets[0]) << 16) | (u32::from(octets[1]) << 8) | u32::from(octets[2]);
+    let oui = mac::octets_to_oui([octets[0], octets[1], octets[2]]);
     db::lookup_prefix(oui).map(|name| Vendor {
         prefix: mac::format_oui(oui),
         name: name.to_string(),
@@ -293,11 +292,7 @@ impl Entry {
 
     /// The OUI prefix as its three bytes, most-significant first.
     pub fn octets(&self) -> [u8; 3] {
-        [
-            (self.prefix >> 16) as u8,
-            (self.prefix >> 8) as u8,
-            self.prefix as u8,
-        ]
+        mac::oui_to_octets(self.prefix)
     }
 }
 
