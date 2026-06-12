@@ -302,6 +302,21 @@ pub fn format_mac48_bare(octets: [u8; 6]) -> String {
     )
 }
 
+/// Extract the three bytes of a 24-bit OUI prefix, most-significant first.
+///
+/// Inverse of [`octets_to_oui`]; the high byte of `oui` is ignored.
+#[inline]
+pub const fn oui_to_octets(oui: u32) -> [u8; 3] {
+    [(oui >> 16) as u8, (oui >> 8) as u8, oui as u8]
+}
+
+/// Pack three OUI bytes into the low 24 bits of a `u32`, most-significant
+/// first. Inverse of [`oui_to_octets`].
+#[inline]
+pub const fn octets_to_oui(octets: [u8; 3]) -> u32 {
+    ((octets[0] as u32) << 16) | ((octets[1] as u32) << 8) | (octets[2] as u32)
+}
+
 /// Format a 24-bit OUI prefix as a lower-case `aa:bb:cc` string.
 pub fn format_oui_lower(oui: u32) -> String {
     format!(
@@ -520,6 +535,15 @@ mod tests {
             assert_eq!(k.as_str(), k.to_string());
         }
     }
+    #[test]
+    fn oui_octet_conversions_are_inverse() {
+        for oui in [0u32, 0x001122, 0xA483E7, 0xFFFFFF] {
+            assert_eq!(octets_to_oui(oui_to_octets(oui)), oui);
+        }
+        // High byte is dropped.
+        assert_eq!(oui_to_octets(0xFF_A483E7), oui_to_octets(0xA483E7));
+    }
+
     #[test]
     fn link_local_from_mac() {
         let mac = parse_mac48("00:11:22:33:44:55").unwrap();
