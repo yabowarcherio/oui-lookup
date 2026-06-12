@@ -6,12 +6,14 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+## [0.5.0]
+
 ### Added
 
 - Address helpers: `is_unicast`, `is_zero`, `eui64_to_mac` (inverse of
   `to_eui64`), and `MacKind::is_unicast`/`is_global`/`is_group`.
 - Formatters: `format_mac48_hyphen`, `format_mac48_cisco`, `format_mac48_lower`,
-  and `format_oui_lower`.
+  `format_mac48_bare` (no separators), and `format_oui_lower`.
 - Lookup: `lookup_oui` for raw integer OUI prefixes; `vendors()` listing the
   distinct registry vendor names.
 - Octet/byte lookups: `lookup_entry_octets`, `lookup_vendor_octets`,
@@ -19,8 +21,12 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 - `prefixes_for(name)` to enumerate every OUI of an exact vendor name.
 - `MacKind::as_str()` (non-allocating) and `normalize_mac_lower`.
 - `link_local_ipv6()` deriving the `fe80::/64` address from a MAC.
+- `oui_to_octets` / `octets_to_oui` — const conversion helpers between a
+  24-bit OUI integer and its three-byte form.
+- `Vendor::octets()` and `Vendor::oui()` to recover the raw prefix from a
+  resolved vendor.
 - CLI: `--vendor-only`, `--unique`, `--eui64`, `--vendors`, `--normalize`,
-  `--lower`, and `--link-local`.
+  `--lower`, `--link-local`, and `--format bare`.
 
 ## [0.4.0]
 
@@ -70,7 +76,8 @@ Initial release.
 - `serde` feature for deriving serde traits on the `Vendor` type.
 - Criterion benchmark for the lookup hot path.
 
-[Unreleased]: https://github.com/yabowarcherio/oui-lookup/compare/v0.4.0...HEAD
+[Unreleased]: https://github.com/yabowarcherio/oui-lookup/compare/v0.5.0...HEAD
+[0.5.0]: https://github.com/yabowarcherio/oui-lookup/compare/v0.4.0...v0.5.0
 [0.4.0]: https://github.com/yabowarcherio/oui-lookup/compare/v0.3.0...v0.4.0
 [0.3.0]: https://github.com/yabowarcherio/oui-lookup/compare/v0.2.0...v0.3.0
 [0.2.0]: https://github.com/yabowarcherio/oui-lookup/compare/v0.1.0...v0.2.0
