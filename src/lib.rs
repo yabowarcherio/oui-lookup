@@ -79,6 +79,28 @@ pub struct Vendor {
     pub name: String,
 }
 
+impl Vendor {
+    /// Parse the canonical `AA:BB:CC` prefix back to its three bytes.
+    ///
+    /// Always succeeds for values produced by this crate; the parsing logic is
+    /// only exposed in case the [`Vendor`] was deserialized from an untrusted
+    /// source — a malformed `prefix` returns `[0, 0, 0]`.
+    pub fn octets(&self) -> [u8; 3] {
+        let oui = mac::parse_oui(&self.prefix).unwrap_or(0);
+        [
+            ((oui >> 16) & 0xFF) as u8,
+            ((oui >> 8) & 0xFF) as u8,
+            (oui & 0xFF) as u8,
+        ]
+    }
+
+    /// The 24-bit OUI prefix as a raw integer, in the low bits of the returned
+    /// `u32`.
+    pub fn oui(&self) -> u32 {
+        mac::parse_oui(&self.prefix).unwrap_or(0)
+    }
+}
+
 /// Look up the vendor name for a MAC address or OUI prefix.
 ///
 /// Accepts any of the usual textual MAC formats (`:`, `-`, `.`, or no
@@ -386,6 +408,23 @@ mod tests {
         // Sorted and deduplicated.
         assert!(v.windows(2).all(|w| w[0] < w[1]));
     }
+    #[test]
+    fn vendor_octets_round_trip() {
+        let v = Vendor {
+            prefix: "A4:83:E7".to_string(),
+            name: "Apple".to_string(),
+        };
+        assert_eq!(v.octets(), [0xA4, 0x83, 0xE7]);
+        assert_eq!(v.oui(), 0xA483E7);
+        // Malformed prefix collapses to zero rather than panicking.
+        let bad = Vendor {
+            prefix: "not a prefix".to_string(),
+            name: String::new(),
+        };
+        assert_eq!(bad.octets(), [0, 0, 0]);
+        assert_eq!(bad.oui(), 0);
+    }
+
     #[test]
     fn entry_octets_match_prefix() {
         let e = Entry {
