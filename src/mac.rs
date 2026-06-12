@@ -290,6 +290,18 @@ pub fn format_mac48_lower(octets: [u8; 6]) -> String {
     )
 }
 
+/// Format a 48-bit MAC address with no separators, e.g. `001122334455`.
+///
+/// Useful for compact log lines and identifiers that need to round-trip through
+/// systems that strip punctuation. The output re-parses to the same octets via
+/// [`parse_mac48`].
+pub fn format_mac48_bare(octets: [u8; 6]) -> String {
+    format!(
+        "{:02X}{:02X}{:02X}{:02X}{:02X}{:02X}",
+        octets[0], octets[1], octets[2], octets[3], octets[4], octets[5]
+    )
+}
+
 /// Format a 24-bit OUI prefix as a lower-case `aa:bb:cc` string.
 pub fn format_oui_lower(oui: u32) -> String {
     format!(
@@ -480,11 +492,13 @@ mod tests {
         let m = parse_mac48("00:11:22:33:44:55").unwrap();
         assert_eq!(format_mac48_hyphen(m), "00-11-22-33-44-55");
         assert_eq!(format_mac48_cisco(m), "0011.2233.4455");
+        assert_eq!(format_mac48_bare(m), "001122334455");
         // All formats must re-parse to the same octets.
         for s in [
             format_mac48(m),
             format_mac48_hyphen(m),
             format_mac48_cisco(m),
+            format_mac48_bare(m),
         ] {
             assert_eq!(parse_mac48(&s).unwrap(), m);
         }
