@@ -22,6 +22,8 @@ enum Format {
     Tsv,
     /// Comma-separated values (OUI,vendor).
     Csv,
+    /// Bare OUI (no separators) followed by vendor.
+    Bare,
 }
 
 /// Offline MAC-address vendor (OUI) lookup.
@@ -334,6 +336,19 @@ fn main() -> ExitCode {
             } else {
                 let _ = writeln!(out, "{prefix},{vendor}");
             }
+        }
+    } else if cli.format == Format::Bare {
+        for r in &records {
+            // Strip the colons from the formatted prefix so the output is six
+            // contiguous hex digits — friendly for downstream tools that
+            // don't tolerate punctuation.
+            let prefix = r
+                .prefix
+                .as_deref()
+                .map(|p| p.replace(':', ""))
+                .unwrap_or_else(|| r.input.clone());
+            let vendor = r.vendor.as_deref().unwrap_or("");
+            let _ = writeln!(out, "{prefix}\t{vendor}");
         }
     } else {
         for r in &records {
