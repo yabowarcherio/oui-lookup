@@ -176,3 +176,28 @@ fn search_results_are_sorted_by_prefix() {
         prev = e.prefix;
     }
 }
+
+#[test]
+fn format_mac48_bare_round_trips_through_parse() {
+    use oui_lookup::{format_mac48_bare, parse_mac48};
+    let m = parse_mac48("00:11:22:33:44:55").unwrap();
+    let bare = format_mac48_bare(m);
+    assert_eq!(bare, "001122334455");
+    assert_eq!(parse_mac48(&bare).unwrap(), m);
+}
+
+#[test]
+fn oui_octet_helpers_are_inverse() {
+    use oui_lookup::{octets_to_oui, oui_to_octets, parse_oui};
+    let oui = parse_oui("a4:83:e7").unwrap();
+    assert_eq!(octets_to_oui(oui_to_octets(oui)), oui);
+}
+
+#[test]
+fn vendor_accessors_match_parse_oui() {
+    use oui_lookup::{lookup_vendor, parse_oui};
+    if let Some(v) = lookup_vendor("A4:83:E7") {
+        assert_eq!(v.oui(), parse_oui("a4:83:e7").unwrap());
+        assert_eq!(v.octets(), [0xA4, 0x83, 0xE7]);
+    }
+}
