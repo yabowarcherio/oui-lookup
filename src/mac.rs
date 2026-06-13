@@ -176,6 +176,33 @@ pub fn is_zero(octets: [u8; 6]) -> bool {
     octets == [0x00; 6]
 }
 
+/// Returns `true` if the address falls in the IPv4-multicast Ethernet block
+/// `01:00:5E:00:00:00`–`01:00:5E:7F:FF:FF` (RFC 1112 §6.4), the L2 mapping for
+/// IPv4 multicast group addresses.
+#[inline]
+pub fn is_ipv4_multicast(octets: [u8; 6]) -> bool {
+    octets[0] == 0x01 && octets[1] == 0x00 && octets[2] == 0x5E && octets[3] < 0x80
+}
+
+/// Returns `true` if the address falls in the IPv6-multicast Ethernet block
+/// `33:33:00:00:00:00/24` (RFC 2464 §7), the L2 mapping for IPv6 multicast
+/// group addresses.
+#[inline]
+pub fn is_ipv6_multicast(octets: [u8; 6]) -> bool {
+    octets[0] == 0x33 && octets[1] == 0x33
+}
+
+/// Returns `true` for the VRRP virtual-router MAC range `00:00:5E:00:01:xx`
+/// (RFC 5798 §7.3) — used by IPv4 VRRP and HSRP-like protocols.
+#[inline]
+pub fn is_vrrp(octets: [u8; 6]) -> bool {
+    octets[0] == 0x00
+        && octets[1] == 0x00
+        && octets[2] == 0x5E
+        && octets[3] == 0x00
+        && octets[4] == 0x01
+}
+
 /// Parse a full 48-bit MAC address into its six octets.
 ///
 /// Unlike [`parse_oui`], this requires all six octets (twelve hex digits) to be
@@ -535,6 +562,39 @@ mod tests {
             assert_eq!(k.as_str(), k.to_string());
         }
     }
+    #[test]
+    fn ipv4_multicast_mac_range() {
+        // L2 mapping for 224.0.0.1.
+        let m = parse_mac48("01:00:5e:00:00:01").unwrap();
+        assert!(is_ipv4_multicast(m));
+        // Just past the upper bound of the RFC 1112 block.
+        let edge = parse_mac48("01:00:5e:80:00:00").unwrap();
+        assert!(!is_ipv4_multicast(edge));
+        // Unicast address with a similar prefix is not IPv4 multicast.
+        let u = parse_mac48("a4:83:e7:00:00:01").unwrap();
+        assert!(!is_ipv4_multicast(u));
+    }
+
+    #[test]
+    fn ipv6_multicast_mac_range() {
+        // L2 mapping for ff02::1.
+        let m = parse_mac48("33:33:00:00:00:01").unwrap();
+        assert!(is_ipv6_multicast(m));
+        assert!(is_multicast(m));
+        // Same-first-byte but not 33:33 — not IPv6 multicast.
+        let m2 = parse_mac48("33:00:00:00:00:01").unwrap();
+        assert!(!is_ipv6_multicast(m2));
+    }
+
+    #[test]
+    fn vrrp_range() {
+        let v = parse_mac48("00:00:5e:00:01:01").unwrap();
+        assert!(is_vrrp(v));
+        // Same prefix, different sub-byte: not VRRP.
+        let other = parse_mac48("00:00:5e:00:02:01").unwrap();
+        assert!(!is_vrrp(other));
+    }
+
     #[test]
     fn oui_octet_conversions_are_inverse() {
         for oui in [0u32, 0x001122, 0xA483E7, 0xFFFFFF] {
