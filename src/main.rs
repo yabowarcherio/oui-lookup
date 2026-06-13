@@ -11,7 +11,7 @@ use std::io::{self, BufRead, Write};
 use std::process::ExitCode;
 
 use clap::{Parser, ValueEnum};
-use oui_lookup::{classify, format_oui, parse_mac48, parse_oui, search, to_eui64};
+use oui_lookup::{classify, format_oui, parse_mac48, parse_oui, scope, search, to_eui64};
 
 /// Output format for lookup results.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, ValueEnum)]
@@ -100,6 +100,11 @@ struct Cli {
     /// exit.
     #[arg(long, conflicts_with_all = ["json", "class", "vendor_only", "eui64", "normalize"])]
     link_local: bool,
+
+    /// Print the address scope (broadcast, ipv4-multicast, vrrp, …) for each
+    /// full MAC, then exit. More specific than --class.
+    #[arg(long, conflicts_with_all = ["json", "class", "vendor_only", "eui64", "normalize", "link_local"])]
+    scope: bool,
 
     /// With --normalize/--eui64 output, use the lower-case colon form.
     #[arg(long)]
@@ -259,6 +264,26 @@ fn main() -> ExitCode {
             match parse_mac48(s) {
                 Ok(mac) => {
                     let _ = writeln!(out, "{}", oui_lookup::link_local_ipv6(mac));
+                }
+                Err(err) => {
+                    eprintln!("oui-lookup: {s:?}: {err}");
+                    bad = true;
+                }
+            }
+        }
+        return if bad {
+            ExitCode::from(2)
+        } else {
+            ExitCode::SUCCESS
+        };
+    }
+
+    if cli.scope {
+        let mut bad = false;
+        for s in &inputs {
+            match parse_mac48(s) {
+                Ok(mac) => {
+                    let _ = writeln!(out, "{}", scope(mac));
                 }
                 Err(err) => {
                     eprintln!("oui-lookup: {s:?}: {err}");

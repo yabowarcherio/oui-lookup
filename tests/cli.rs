@@ -267,6 +267,26 @@ fn link_local_flag_outputs_fe80() {
 }
 
 #[test]
+fn scope_flag_classifies_specific_buckets() {
+    let out = bin()
+        .args([
+            "--scope",
+            "ff:ff:ff:ff:ff:ff",
+            "01:00:5e:00:00:01",
+            "33:33:00:00:00:01",
+            "01:80:c2:00:00:00",
+            "00:00:5e:00:01:0a",
+            "a4:83:e7:00:00:01",
+        ])
+        .output()
+        .unwrap();
+    assert!(out.status.success());
+    let s = String::from_utf8(out.stdout).unwrap();
+    let want = "broadcast\nipv4-multicast\nipv6-multicast\nbridge-protocol\nvrrp\nglobal-unicast\n";
+    assert_eq!(s, want);
+}
+
+#[test]
 fn format_bare_strips_separators() {
     // FF:FF:FF is guaranteed not to resolve to any registered vendor, which
     // keeps this test independent of the embedded registry snapshot.
