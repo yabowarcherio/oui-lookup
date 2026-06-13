@@ -283,6 +283,40 @@ pub fn scope(octets: [u8; 6]) -> MacScope {
 }
 
 impl MacScope {
+    /// `true` for the multicast and broadcast buckets (`Broadcast`,
+    /// `Ipv4Multicast`, `Ipv6Multicast`, `BridgeProtocol`, `OtherMulticast`).
+    pub fn is_multicast(self) -> bool {
+        matches!(
+            self,
+            MacScope::Broadcast
+                | MacScope::Ipv4Multicast
+                | MacScope::Ipv6Multicast
+                | MacScope::BridgeProtocol
+                | MacScope::OtherMulticast
+        )
+    }
+
+    /// `true` for the unicast buckets (`LocalUnicast`, `GlobalUnicast`,
+    /// `Vrrp`, `Generic`). `Zero` is treated as unicast (it parses as a
+    /// unicast address even though it usually signals "unknown").
+    pub fn is_unicast(self) -> bool {
+        !self.is_multicast()
+    }
+
+    /// `true` if this scope identifies a specific protocol or reserved range
+    /// rather than just a generic uni- or multicast bucket.
+    pub fn is_specific(self) -> bool {
+        matches!(
+            self,
+            MacScope::Broadcast
+                | MacScope::Ipv4Multicast
+                | MacScope::Ipv6Multicast
+                | MacScope::Vrrp
+                | MacScope::BridgeProtocol
+                | MacScope::Zero
+        )
+    }
+
     /// The scope name as a static string, without allocating.
     pub fn as_str(self) -> &'static str {
         match self {
@@ -731,6 +765,19 @@ mod tests {
         for (s, want) in cases {
             assert_eq!(scope(parse_mac48(s).unwrap()), want, "input: {s}");
         }
+    }
+
+    #[test]
+    fn macscope_predicates() {
+        assert!(MacScope::Broadcast.is_multicast());
+        assert!(MacScope::Ipv4Multicast.is_multicast());
+        assert!(MacScope::BridgeProtocol.is_multicast());
+        assert!(!MacScope::LocalUnicast.is_multicast());
+        assert!(MacScope::LocalUnicast.is_unicast());
+        assert!(MacScope::Vrrp.is_unicast());
+        assert!(MacScope::Broadcast.is_specific());
+        assert!(!MacScope::GlobalUnicast.is_specific());
+        assert!(!MacScope::Generic.is_specific());
     }
 
     #[test]
