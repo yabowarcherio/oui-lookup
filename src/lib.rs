@@ -58,10 +58,10 @@ mod mac;
 
 pub use mac::{
     classify, eui64_to_mac, format_mac48, format_mac48_bare, format_mac48_cisco,
-    format_mac48_hyphen, format_mac48_lower, format_oui, format_oui_lower, is_broadcast,
-    is_ipv4_multicast, is_ipv6_multicast, is_locally_administered, is_multicast, is_unicast,
-    is_vrrp, is_zero, link_local_ipv6, octets_to_oui, oui_to_octets, parse_mac48, parse_oui,
-    to_eui64, MacKind, ParseMacError,
+    format_mac48_hyphen, format_mac48_lower, format_oui, format_oui_lower, is_bridge_protocol,
+    is_broadcast, is_ipv4_multicast, is_ipv6_multicast, is_locally_administered, is_multicast,
+    is_pause, is_stp_bpdu, is_unicast, is_vrrp, is_zero, link_local_ipv6, octets_to_oui,
+    oui_to_octets, parse_mac48, parse_oui, scope, to_eui64, MacKind, MacScope, ParseMacError,
 };
 
 /// The number of OUI prefixes embedded in this build of the crate.

@@ -203,6 +203,109 @@ pub fn is_vrrp(octets: [u8; 6]) -> bool {
         && octets[4] == 0x01
 }
 
+/// Returns `true` for the IEEE 802.3x **PAUSE** frame destination
+/// `01:80:C2:00:00:01`.
+#[inline]
+pub fn is_pause(octets: [u8; 6]) -> bool {
+    octets == [0x01, 0x80, 0xC2, 0x00, 0x00, 0x01]
+}
+
+/// Returns `true` for the IEEE 802.1D **STP BPDU** destination
+/// `01:80:C2:00:00:00` — also used by RSTP/MSTP.
+#[inline]
+pub fn is_stp_bpdu(octets: [u8; 6]) -> bool {
+    octets == [0x01, 0x80, 0xC2, 0x00, 0x00, 0x00]
+}
+
+/// Returns `true` for any address in the IEEE-reserved **bridge-protocol**
+/// block `01:80:C2:00:00:00`–`01:80:C2:00:00:0F`, which carries STP, LACP,
+/// LLDP, and other link-local control traffic.
+#[inline]
+pub fn is_bridge_protocol(octets: [u8; 6]) -> bool {
+    octets[0] == 0x01
+        && octets[1] == 0x80
+        && octets[2] == 0xC2
+        && octets[3] == 0x00
+        && octets[4] == 0x00
+        && octets[5] <= 0x0F
+}
+
+/// A finer-grained classification than [`MacKind`], picking out well-known
+/// reserved or protocol-specific blocks.
+///
+/// Computed by [`scope`]. Plain unicast/multicast/broadcast addresses fall into
+/// the [`MacScope::Generic`] catch-all.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum MacScope {
+    /// The all-ones broadcast `FF:FF:FF:FF:FF:FF`.
+    Broadcast,
+    /// L2 mapping of an IPv4 multicast group (`01:00:5E:00:00:00/25`).
+    Ipv4Multicast,
+    /// L2 mapping of an IPv6 multicast group (`33:33::/24`).
+    Ipv6Multicast,
+    /// A VRRP/HSRP virtual-router MAC (`00:00:5E:00:01:xx`).
+    Vrrp,
+    /// An IEEE-reserved bridge-protocol address (`01:80:C2:00:00:00/4`).
+    BridgeProtocol,
+    /// Any other group/multicast address.
+    OtherMulticast,
+    /// A locally administered unicast address.
+    LocalUnicast,
+    /// A globally unique, IEEE-assigned unicast address.
+    GlobalUnicast,
+    /// The all-zero placeholder `00:00:00:00:00:00`.
+    Zero,
+    /// A unicast address that didn't fit any of the more specific buckets.
+    Generic,
+}
+
+/// Classify an address into a [`MacScope`], picking the most specific bucket.
+pub fn scope(octets: [u8; 6]) -> MacScope {
+    if is_broadcast(octets) {
+        MacScope::Broadcast
+    } else if is_zero(octets) {
+        MacScope::Zero
+    } else if is_bridge_protocol(octets) {
+        MacScope::BridgeProtocol
+    } else if is_ipv4_multicast(octets) {
+        MacScope::Ipv4Multicast
+    } else if is_ipv6_multicast(octets) {
+        MacScope::Ipv6Multicast
+    } else if is_multicast(octets) {
+        MacScope::OtherMulticast
+    } else if is_vrrp(octets) {
+        MacScope::Vrrp
+    } else if is_locally_administered(octets) {
+        MacScope::LocalUnicast
+    } else {
+        MacScope::GlobalUnicast
+    }
+}
+
+impl MacScope {
+    /// The scope name as a static string, without allocating.
+    pub fn as_str(self) -> &'static str {
+        match self {
+            MacScope::Broadcast => "broadcast",
+            MacScope::Ipv4Multicast => "ipv4-multicast",
+            MacScope::Ipv6Multicast => "ipv6-multicast",
+            MacScope::Vrrp => "vrrp",
+            MacScope::BridgeProtocol => "bridge-protocol",
+            MacScope::OtherMulticast => "multicast",
+            MacScope::LocalUnicast => "local-unicast",
+            MacScope::GlobalUnicast => "global-unicast",
+            MacScope::Zero => "zero",
+            MacScope::Generic => "generic",
+        }
+    }
+}
+
+impl fmt::Display for MacScope {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.write_str(self.as_str())
+    }
+}
+
 /// Parse a full 48-bit MAC address into its six octets.
 ///
 /// Unlike [`parse_oui`], this requires all six octets (twelve hex digits) to be
