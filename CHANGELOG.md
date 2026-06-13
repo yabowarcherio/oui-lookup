@@ -6,6 +6,16 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+### Added
+
+- Reserved-range predicates: `is_ipv4_multicast` (01:00:5E:00:00:00/25,
+  RFC 1112), `is_ipv6_multicast` (33:33::/24, RFC 2464), `is_vrrp`
+  (00:00:5E:00:01:xx, RFC 5798), `is_bridge_protocol` (01:80:C2:00:00:00/4),
+  `is_pause` (01:80:C2:00:00:01), and `is_stp_bpdu` (01:80:C2:00:00:00).
+- `MacScope` enum and `scope(octets)` for fine-grained classification, plus
+  `MacScope::is_multicast`/`is_unicast`/`is_specific`/`as_str` predicates.
+- CLI `--scope` flag printing the scope per address.
+
 ## [0.5.0]
 
 ### Added

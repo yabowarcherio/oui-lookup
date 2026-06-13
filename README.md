@@ -155,6 +155,27 @@ assert!(is_multicast(mac));
 let _eui64 = to_eui64(mac);
 ```
 
+## Address scope
+
+`MacScope` is a finer classification than `MacKind`: it picks out the well-known
+reserved blocks (IPv4/IPv6 multicast, VRRP, bridge-protocol) instead of just
+unicast/multicast/broadcast.
+
+```rust
+use oui_lookup::{parse_mac48, scope, MacScope};
+
+assert_eq!(scope(parse_mac48("01:00:5e:00:00:01").unwrap()), MacScope::Ipv4Multicast);
+assert_eq!(scope(parse_mac48("33:33:00:00:00:01").unwrap()), MacScope::Ipv6Multicast);
+assert_eq!(scope(parse_mac48("01:80:c2:00:00:00").unwrap()), MacScope::BridgeProtocol);
+assert_eq!(scope(parse_mac48("00:00:5e:00:01:0a").unwrap()), MacScope::Vrrp);
+```
+
+From the CLI:
+
+```sh
+oui-lookup --scope 01:00:5e:00:00:01     # ipv4-multicast
+```
+
 ## Formats and prefix conversions
 
 ```rust
