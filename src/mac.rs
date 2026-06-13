@@ -176,6 +176,24 @@ pub fn is_zero(octets: [u8; 6]) -> bool {
     octets == [0x00; 6]
 }
 
+/// Three-byte prefix shared by every L2 mapping of an IPv4 multicast group
+/// (`01:00:5E`, RFC 1112 §6.4).
+pub const IPV4_MULTICAST_PREFIX: [u8; 3] = [0x01, 0x00, 0x5E];
+
+/// Two-byte prefix shared by every L2 mapping of an IPv6 multicast group
+/// (`33:33`, RFC 2464 §7). The remaining bytes carry the low 32 bits of the
+/// IPv6 multicast address.
+pub const IPV6_MULTICAST_PREFIX: [u8; 2] = [0x33, 0x33];
+
+/// First five bytes of the VRRP virtual-router MAC range (`00:00:5E:00:01`,
+/// RFC 5798 §7.3). The last byte is the VRID.
+pub const VRRP_PREFIX: [u8; 5] = [0x00, 0x00, 0x5E, 0x00, 0x01];
+
+/// Five-byte prefix shared by every IEEE-reserved bridge-protocol address
+/// (`01:80:C2:00:00`). The low byte selects the specific protocol
+/// (`0x00` = STP BPDU, `0x01` = PAUSE, `0x02` = LACP, etc.).
+pub const BRIDGE_PROTOCOL_PREFIX: [u8; 5] = [0x01, 0x80, 0xC2, 0x00, 0x00];
+
 /// Returns `true` if the address falls in the IPv4-multicast Ethernet block
 /// `01:00:5E:00:00:00`–`01:00:5E:7F:FF:FF` (RFC 1112 §6.4), the L2 mapping for
 /// IPv4 multicast group addresses.
