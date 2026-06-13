@@ -212,6 +212,16 @@ pub fn lookup_oui(oui: u32) -> Option<&'static str> {
     db::lookup_prefix(oui & 0x00FF_FFFF)
 }
 
+/// Look up the vendor for a raw three-byte OUI prefix, the byte-array twin of
+/// [`lookup_oui`].
+///
+/// Useful when you already have the bytes (e.g. from an ARP table) and don't
+/// want to round-trip through a `u32`.
+#[inline]
+pub fn lookup_oui_octets(octets: [u8; 3]) -> Option<&'static str> {
+    db::lookup_prefix(mac::octets_to_oui(octets))
+}
+
 /// Return every distinct vendor name in the embedded registry, sorted
 /// alphabetically.
 ///
@@ -396,6 +406,13 @@ mod tests {
         assert_eq!(lookup_oui(oui), lookup("a4:83:e7:00:00:00"));
         // High bits above 24 are ignored.
         assert_eq!(lookup_oui(oui | 0xFF00_0000), lookup_oui(oui));
+    }
+
+    #[test]
+    fn lookup_oui_octets_matches_lookup_oui() {
+        let oui = parse_oui("a4:83:e7:00:00:00").unwrap();
+        assert_eq!(lookup_oui_octets([0xA4, 0x83, 0xE7]), lookup_oui(oui));
+        assert_eq!(lookup_oui_octets([0xFF, 0xFF, 0xFF]), None);
     }
     #[test]
     fn vendors_are_unique_and_sorted() {
