@@ -690,6 +690,68 @@ mod tests {
     }
 
     #[test]
+    fn bridge_protocol_block() {
+        assert!(is_bridge_protocol(
+            parse_mac48("01:80:c2:00:00:00").unwrap()
+        ));
+        assert!(is_bridge_protocol(
+            parse_mac48("01:80:c2:00:00:0f").unwrap()
+        ));
+        // Just past the block.
+        assert!(!is_bridge_protocol(
+            parse_mac48("01:80:c2:00:00:10").unwrap()
+        ));
+        // Different OUI.
+        assert!(!is_bridge_protocol(
+            parse_mac48("01:80:c3:00:00:00").unwrap()
+        ));
+    }
+
+    #[test]
+    fn pause_and_stp_singletons() {
+        assert!(is_stp_bpdu(parse_mac48("01:80:c2:00:00:00").unwrap()));
+        assert!(is_pause(parse_mac48("01:80:c2:00:00:01").unwrap()));
+        assert!(!is_pause(parse_mac48("01:80:c2:00:00:00").unwrap()));
+    }
+
+    #[test]
+    fn scope_picks_most_specific() {
+        let cases = [
+            ("ff:ff:ff:ff:ff:ff", MacScope::Broadcast),
+            ("00:00:00:00:00:00", MacScope::Zero),
+            ("01:80:c2:00:00:00", MacScope::BridgeProtocol),
+            ("01:80:c2:00:00:0e", MacScope::BridgeProtocol),
+            ("01:00:5e:00:00:01", MacScope::Ipv4Multicast),
+            ("33:33:00:00:00:01", MacScope::Ipv6Multicast),
+            ("00:00:5e:00:01:0a", MacScope::Vrrp),
+            ("01:00:5f:00:00:01", MacScope::OtherMulticast),
+            ("02:00:00:00:00:01", MacScope::LocalUnicast),
+            ("a4:83:e7:00:00:01", MacScope::GlobalUnicast),
+        ];
+        for (s, want) in cases {
+            assert_eq!(scope(parse_mac48(s).unwrap()), want, "input: {s}");
+        }
+    }
+
+    #[test]
+    fn macscope_display_matches_as_str() {
+        for s in [
+            MacScope::Broadcast,
+            MacScope::Ipv4Multicast,
+            MacScope::Ipv6Multicast,
+            MacScope::Vrrp,
+            MacScope::BridgeProtocol,
+            MacScope::OtherMulticast,
+            MacScope::LocalUnicast,
+            MacScope::GlobalUnicast,
+            MacScope::Zero,
+            MacScope::Generic,
+        ] {
+            assert_eq!(s.as_str(), s.to_string());
+        }
+    }
+
+    #[test]
     fn vrrp_range() {
         let v = parse_mac48("00:00:5e:00:01:01").unwrap();
         assert!(is_vrrp(v));
