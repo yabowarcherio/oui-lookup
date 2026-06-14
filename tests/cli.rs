@@ -267,6 +267,23 @@ fn link_local_flag_outputs_fe80() {
 }
 
 #[test]
+fn stats_flag_prints_count_tab_name() {
+    let out = bin().args(["--stats", "3"]).output().unwrap();
+    assert!(out.status.success());
+    let s = String::from_utf8(out.stdout).unwrap();
+    let lines: Vec<&str> = s.lines().collect();
+    assert_eq!(lines.len(), 3);
+    // Each line is "<count>\t<name>" with the count non-increasing.
+    let mut prev = usize::MAX;
+    for line in lines {
+        let (n, _name) = line.split_once('\t').expect("tab separator");
+        let count: usize = n.parse().expect("count is an integer");
+        assert!(count <= prev);
+        prev = count;
+    }
+}
+
+#[test]
 fn scope_flag_classifies_specific_buckets() {
     let out = bin()
         .args([
