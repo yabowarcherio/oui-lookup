@@ -342,6 +342,35 @@ pub fn count_matching(needle: &str) -> usize {
     search(needle).count()
 }
 
+/// Count how many OUI prefixes a vendor holds, matched by **exact** (but
+/// case-insensitive) name. Differs from [`count_matching`] in the same way
+/// [`prefixes_for`] differs from [`search`].
+pub fn vendor_block_count(name: &str) -> usize {
+    prefixes_for(name).count()
+}
+
+/// Return the `n` vendor names with the most OUI blocks in the embedded
+/// registry, in descending order of block count. Ties break by vendor name.
+///
+/// This is a linear sweep over the whole registry plus a sort, so it allocates
+/// — cache the result if you need it on a hot path. Passing `n = 0` returns
+/// an empty vector.
+pub fn top_vendors(n: usize) -> Vec<(&'static str, usize)> {
+    if n == 0 {
+        return Vec::new();
+    }
+    let mut counts: std::collections::HashMap<&'static str, usize> =
+        std::collections::HashMap::new();
+    for e in entries() {
+        *counts.entry(e.name).or_insert(0) += 1;
+    }
+    let mut sorted: Vec<(&'static str, usize)> = counts.into_iter().collect();
+    // Sort by count desc, then name asc so the output is deterministic.
+    sorted.sort_unstable_by(|a, b| b.1.cmp(&a.1).then_with(|| a.0.cmp(b.0)));
+    sorted.truncate(n);
+    sorted
+}
+
 /// Iterate over every entry in the embedded registry, in ascending prefix
 /// order.
 pub fn entries() -> impl Iterator<Item = Entry> {
@@ -463,6 +492,32 @@ mod tests {
         let ff = parse_mac48("ff:ff:ff:00:00:00").unwrap();
         assert!(lookup_entry_octets(ff).is_none());
     }
+    #[test]
+    fn top_vendors_is_sorted_and_capped() {
+        let top = top_vendors(5);
+        assert!(top.len() <= 5);
+        // Counts are non-increasing.
+        for w in top.windows(2) {
+            assert!(w[0].1 >= w[1].1, "counts not sorted: {top:?}");
+        }
+        // Each count is positive.
+        for (name, c) in &top {
+            assert!(*c > 0, "{name}");
+            assert_eq!(*c, vendor_block_count(name));
+        }
+        assert_eq!(top_vendors(0), Vec::<(&'static str, usize)>::new());
+    }
+
+    #[test]
+    fn vendor_block_count_matches_prefixes_for() {
+        if let Some(first) = entries().next() {
+            assert_eq!(
+                vendor_block_count(first.name),
+                prefixes_for(first.name).count()
+            );
+        }
+    }
+
     #[test]
     fn prefixes_for_is_exact_match() {
         // Pick a real vendor name from the table and ensure all returned
