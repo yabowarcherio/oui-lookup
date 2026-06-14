@@ -222,6 +222,17 @@ pub fn lookup_oui_octets(octets: [u8; 3]) -> Option<&'static str> {
     db::lookup_prefix(mac::octets_to_oui(octets))
 }
 
+/// The number of distinct vendor names in the embedded registry — typically
+/// smaller than [`ENTRY_COUNT`] because most organizations hold several blocks.
+pub fn total_vendors() -> usize {
+    let mut seen: std::collections::HashSet<&'static str> =
+        std::collections::HashSet::new();
+    for e in entries() {
+        seen.insert(e.name);
+    }
+    seen.len()
+}
+
 /// Return every distinct vendor name in the embedded registry, sorted
 /// alphabetically.
 ///
@@ -492,6 +503,12 @@ mod tests {
         let ff = parse_mac48("ff:ff:ff:00:00:00").unwrap();
         assert!(lookup_entry_octets(ff).is_none());
     }
+    #[test]
+    fn total_vendors_matches_vendors_len() {
+        assert_eq!(total_vendors(), vendors().len());
+        assert!(total_vendors() <= ENTRY_COUNT);
+    }
+
     #[test]
     fn top_vendors_is_sorted_and_capped() {
         let top = top_vendors(5);
