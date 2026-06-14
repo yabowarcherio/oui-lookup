@@ -92,6 +92,10 @@ struct Cli {
     #[arg(long, exclusive = true)]
     vendors: bool,
 
+    /// Print the top-N vendors by OUI-block count, then exit.
+    #[arg(long, value_name = "N", exclusive = true)]
+    stats: Option<usize>,
+
     /// Print the canonical form of each full MAC, then exit.
     #[arg(long, conflicts_with_all = ["json", "class", "vendor_only", "eui64"])]
     normalize: bool,
@@ -195,6 +199,13 @@ fn main() -> ExitCode {
     if cli.vendors {
         for name in oui_lookup::vendors() {
             println!("{name}");
+        }
+        return ExitCode::SUCCESS;
+    }
+
+    if let Some(n) = cli.stats {
+        for (name, count) in oui_lookup::top_vendors(n) {
+            println!("{count}\t{name}");
         }
         return ExitCode::SUCCESS;
     }
