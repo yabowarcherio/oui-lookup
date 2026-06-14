@@ -14,7 +14,12 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
   `is_pause` (01:80:C2:00:00:01), and `is_stp_bpdu` (01:80:C2:00:00:00).
 - `MacScope` enum and `scope(octets)` for fine-grained classification, plus
   `MacScope::is_multicast`/`is_unicast`/`is_specific`/`as_str` predicates.
-- CLI `--scope` flag printing the scope per address.
+- Const prefixes: `IPV4_MULTICAST_PREFIX`, `IPV6_MULTICAST_PREFIX`,
+  `VRRP_PREFIX`, `BRIDGE_PROTOCOL_PREFIX`.
+- `lookup_oui_octets([u8; 3])` direct three-byte prefix lookup.
+- Registry stats: `total_vendors()`, `vendor_block_count(name)`, and
+  `top_vendors(n)`.
+- CLI: `--scope` for fine-grained classification, `--stats N` for top vendors.
 
 ## [0.5.0]
 
