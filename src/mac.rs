@@ -424,6 +424,35 @@ pub fn link_local_ipv6(octets: [u8; 6]) -> std::net::Ipv6Addr {
     )
 }
 
+/// Recover the 48-bit MAC address from an IPv6 link-local address whose
+/// interface identifier was formed by [`link_local_ipv6`] (i.e. via Modified
+/// EUI-64).
+///
+/// Returns `None` if the prefix isn't `fe80::/64` or the interface identifier
+/// doesn't carry the `FF:FE` marker.
+pub fn mac_from_link_local(addr: std::net::Ipv6Addr) -> Option<[u8; 6]> {
+    let segs = addr.segments();
+    // Must be in fe80::/10 with the middle segments zero (the /64 prefix used
+    // when forming link-local from EUI-64).
+    if segs[0] & 0xFFC0 != 0xFE80 || segs[1] != 0 || segs[2] != 0 || segs[3] != 0 {
+        return None;
+    }
+    let mut eui = [0u8; 8];
+    eui[0..2].copy_from_slice(&segs[4].to_be_bytes());
+    eui[2..4].copy_from_slice(&segs[5].to_be_bytes());
+    eui[4..6].copy_from_slice(&segs[6].to_be_bytes());
+    eui[6..8].copy_from_slice(&segs[7].to_be_bytes());
+    eui64_to_mac(eui)
+}
+
+/// Compute the solicited-node multicast MAC for a target IPv6 address
+/// (RFC 4861 §7.1). The address is `33:33:FF:xx:xx:xx`, where the last three
+/// octets come from the low three octets of the IPv6 address.
+pub fn solicited_node_mac(addr: std::net::Ipv6Addr) -> [u8; 6] {
+    let o = addr.octets();
+    [0x33, 0x33, 0xFF, o[13], o[14], o[15]]
+}
+
 /// Recover the 48-bit MAC address from a Modified EUI-64 interface identifier,
 /// the inverse of [`to_eui64`].
 ///
@@ -845,5 +874,25 @@ mod tests {
                 .parse::<std::net::Ipv6Addr>()
                 .unwrap()
         );
+    }
+
+    #[test]
+    fn link_local_round_trips_through_mac() {
+        let mac = parse_mac48("a4:83:e7:11:22:33").unwrap();
+        let ll = link_local_ipv6(mac);
+        assert_eq!(mac_from_link_local(ll), Some(mac));
+        // Non-fe80 prefix: no.
+        let other: std::net::Ipv6Addr = "2001:db8::1".parse().unwrap();
+        assert_eq!(mac_from_link_local(other), None);
+    }
+
+    #[test]
+    fn solicited_node_uses_low_three_octets() {
+        let addr: std::net::Ipv6Addr = "fe80::a483:e7ff:fe11:2233".parse().unwrap();
+        assert_eq!(
+            solicited_node_mac(addr),
+            [0x33, 0x33, 0xFF, 0x11, 0x22, 0x33]
+        );
+        assert!(is_ipv6_multicast(solicited_node_mac(addr)));
     }
 }
