@@ -110,6 +110,11 @@ struct Cli {
     #[arg(long, conflicts_with_all = ["json", "class", "vendor_only", "eui64", "normalize", "link_local"])]
     scope: bool,
 
+    /// For each IPv6 address argument, print the solicited-node multicast MAC
+    /// (33:33:FF:xx:xx:xx) per RFC 4861 §7.1, then exit.
+    #[arg(long, exclusive = true, value_name = "IPV6", num_args = 1..)]
+    solicited_node: Vec<String>,
+
     /// With --normalize/--eui64 output, use the lower-case colon form.
     #[arg(long)]
     lower: bool,
@@ -208,6 +213,30 @@ fn main() -> ExitCode {
             println!("{count}\t{name}");
         }
         return ExitCode::SUCCESS;
+    }
+
+    if !cli.solicited_node.is_empty() {
+        let mut bad = false;
+        for s in &cli.solicited_node {
+            match s.parse::<std::net::Ipv6Addr>() {
+                Ok(addr) => {
+                    let m = oui_lookup::solicited_node_mac(addr);
+                    println!(
+                        "{:02X}:{:02X}:{:02X}:{:02X}:{:02X}:{:02X}",
+                        m[0], m[1], m[2], m[3], m[4], m[5]
+                    );
+                }
+                Err(err) => {
+                    eprintln!("oui-lookup: {s:?}: {err}");
+                    bad = true;
+                }
+            }
+        }
+        return if bad {
+            ExitCode::from(2)
+        } else {
+            ExitCode::SUCCESS
+        };
     }
 
     if let Some(term) = &cli.search {
