@@ -19,7 +19,11 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 - `lookup_oui_octets([u8; 3])` direct three-byte prefix lookup.
 - Registry stats: `total_vendors()`, `vendor_block_count(name)`, and
   `top_vendors(n)`.
-- CLI: `--scope` for fine-grained classification, `--stats N` for top vendors.
+- IPv6 helpers: `mac_from_link_local(addr)` (inverse of `link_local_ipv6`),
+  `solicited_node_mac(addr)` (RFC 4861 §7.1), and `lookup_link_local(addr)`
+  for one-shot vendor resolution from a link-local IPv6 address.
+- CLI: `--scope` for fine-grained classification, `--stats N` for top vendors,
+  `--solicited-node` for RFC 4861 MAC derivation.
 
 ## [0.5.0]
 
