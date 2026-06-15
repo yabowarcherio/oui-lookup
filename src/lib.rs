@@ -223,6 +223,17 @@ pub fn lookup_oui_octets(octets: [u8; 3]) -> Option<&'static str> {
     db::lookup_prefix(mac::octets_to_oui(octets))
 }
 
+/// Look up the vendor of an IPv6 link-local address by recovering its
+/// embedded MAC.
+///
+/// Returns `None` if `addr` isn't in `fe80::/64` with an EUI-64–derived
+/// interface identifier (see [`mac_from_link_local`]) or the recovered MAC's
+/// OUI is unregistered.
+pub fn lookup_link_local(addr: std::net::Ipv6Addr) -> Option<&'static str> {
+    let mac = mac::mac_from_link_local(addr)?;
+    lookup_octets(mac)
+}
+
 /// The number of distinct vendor names in the embedded registry — typically
 /// smaller than [`ENTRY_COUNT`] because most organizations hold several blocks.
 pub fn total_vendors() -> usize {

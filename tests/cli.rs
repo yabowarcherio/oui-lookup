@@ -267,6 +267,17 @@ fn link_local_flag_outputs_fe80() {
 }
 
 #[test]
+fn solicited_node_flag_derives_multicast_mac() {
+    let out = bin()
+        .args(["--solicited-node", "fe80::a483:e7ff:fe11:2233"])
+        .output()
+        .unwrap();
+    assert!(out.status.success());
+    let s = String::from_utf8(out.stdout).unwrap();
+    assert_eq!(s.trim(), "33:33:FF:11:22:33");
+}
+
+#[test]
 fn stats_flag_prints_count_tab_name() {
     let out = bin().args(["--stats", "3"]).output().unwrap();
     assert!(out.status.success());
