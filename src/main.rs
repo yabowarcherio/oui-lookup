@@ -24,6 +24,8 @@ enum Format {
     Csv,
     /// Bare OUI (no separators) followed by vendor.
     Bare,
+    /// Newline-delimited JSON, one record per line.
+    Ndjson,
 }
 
 /// Offline MAC-address vendor (OUI) lookup.
@@ -414,6 +416,18 @@ fn main() -> ExitCode {
                 .unwrap_or_else(|| r.input.clone());
             let vendor = r.vendor.as_deref().unwrap_or("");
             let _ = writeln!(out, "{prefix}\t{vendor}");
+        }
+    } else if cli.format == Format::Ndjson {
+        for r in &records {
+            match serde_json::to_string(r) {
+                Ok(line) => {
+                    let _ = writeln!(out, "{line}");
+                }
+                Err(e) => {
+                    eprintln!("oui-lookup: failed to serialize JSON: {e}");
+                    return ExitCode::from(2);
+                }
+            }
         }
     } else {
         for r in &records {
