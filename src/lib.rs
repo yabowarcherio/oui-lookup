@@ -83,6 +83,21 @@ pub struct Vendor {
 }
 
 impl Vendor {
+    /// Resolve a raw 24-bit OUI to its [`Vendor`], using the embedded
+    /// registry. Returns `None` if the OUI is unregistered.
+    pub fn from_oui(oui: u32) -> Option<Self> {
+        let oui = oui & 0x00FF_FFFF;
+        db::lookup_prefix(oui).map(|name| Vendor {
+            prefix: mac::format_oui(oui),
+            name: name.to_string(),
+        })
+    }
+
+    /// Resolve a raw three-byte OUI to its [`Vendor`].
+    pub fn from_octets(octets: [u8; 3]) -> Option<Self> {
+        Vendor::from_oui(mac::octets_to_oui(octets))
+    }
+
     /// Parse the canonical `AA:BB:CC` prefix back to its three bytes.
     ///
     /// Always succeeds for values produced by this crate; the parsing logic is
@@ -474,6 +489,14 @@ mod tests {
         // Sorted and deduplicated.
         assert!(v.windows(2).all(|w| w[0] < w[1]));
     }
+    #[test]
+    fn vendor_from_oui_matches_lookup_vendor() {
+        let oui = parse_oui("a4:83:e7").unwrap();
+        assert_eq!(Vendor::from_oui(oui), lookup_vendor("a4:83:e7"));
+        assert_eq!(Vendor::from_octets([0xA4, 0x83, 0xE7]), Vendor::from_oui(oui));
+        assert!(Vendor::from_oui(0xFFFFFF).is_none());
+    }
+
     #[test]
     fn vendor_octets_round_trip() {
         let v = Vendor {
