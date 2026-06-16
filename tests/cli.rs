@@ -267,6 +267,22 @@ fn link_local_flag_outputs_fe80() {
 }
 
 #[test]
+fn ndjson_format_emits_one_object_per_line() {
+    let out = bin()
+        .args(["--format", "ndjson", "00:11:22", "FF:FF:FF:00:00:00"])
+        .output()
+        .unwrap();
+    let s = String::from_utf8(out.stdout).unwrap();
+    let lines: Vec<&str> = s.lines().collect();
+    assert_eq!(lines.len(), 2);
+    // Each line must be parseable as a JSON object.
+    for line in lines {
+        let v: serde_json::Value = serde_json::from_str(line).expect("each line is JSON");
+        assert!(v.get("input").is_some());
+    }
+}
+
+#[test]
 fn solicited_node_flag_derives_multicast_mac() {
     let out = bin()
         .args(["--solicited-node", "fe80::a483:e7ff:fe11:2233"])
