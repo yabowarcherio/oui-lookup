@@ -155,6 +155,44 @@ assert!(is_multicast(mac));
 let _eui64 = to_eui64(mac);
 ```
 
+## Registry stats
+
+```rust
+use oui_lookup::{top_vendors, total_vendors, vendor_block_count};
+
+let n_vendors = total_vendors();
+let apple_blocks = vendor_block_count("Apple, Inc.");
+for (name, count) in top_vendors(5) {
+    println!("{count}\t{name}");
+}
+# let _ = (n_vendors, apple_blocks);
+```
+
+From the CLI:
+
+```sh
+oui-lookup --stats 10        # top-10 vendors by OUI-block count
+```
+
+## IPv6 neighbor helpers
+
+```rust
+use oui_lookup::{lookup_link_local, mac_from_link_local, solicited_node_mac};
+
+let ll: std::net::Ipv6Addr = "fe80::a483:e7ff:fe11:2233".parse().unwrap();
+// Recover the underlying MAC and resolve its vendor in one call.
+let _vendor = lookup_link_local(ll);
+let _mac    = mac_from_link_local(ll);
+// Solicited-node multicast destination per RFC 4861 §7.1.
+assert_eq!(solicited_node_mac(ll), [0x33, 0x33, 0xFF, 0x11, 0x22, 0x33]);
+```
+
+From the CLI:
+
+```sh
+oui-lookup --solicited-node fe80::a483:e7ff:fe11:2233
+```
+
 ## Address scope
 
 `MacScope` is a finer classification than `MacKind`: it picks out the well-known
