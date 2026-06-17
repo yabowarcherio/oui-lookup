@@ -6,6 +6,8 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+## [0.6.0]
+
 ### Added
 
 - Reserved-range predicates: `is_ipv4_multicast` (01:00:5E:00:00:00/25,
@@ -22,8 +24,10 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 - IPv6 helpers: `mac_from_link_local(addr)` (inverse of `link_local_ipv6`),
   `solicited_node_mac(addr)` (RFC 4861 §7.1), and `lookup_link_local(addr)`
   for one-shot vendor resolution from a link-local IPv6 address.
+- `Vendor::from_oui` / `Vendor::from_octets` constructors.
 - CLI: `--scope` for fine-grained classification, `--stats N` for top vendors,
-  `--solicited-node` for RFC 4861 MAC derivation.
+  `--solicited-node` for RFC 4861 MAC derivation, `--format ndjson` for
+  streaming JSON output.
 
 ## [0.5.0]
 
@@ -95,7 +99,8 @@ Initial release.
 - `serde` feature for deriving serde traits on the `Vendor` type.
 - Criterion benchmark for the lookup hot path.
 
-[Unreleased]: https://github.com/yabowarcherio/oui-lookup/compare/v0.5.0...HEAD
+[Unreleased]: https://github.com/yabowarcherio/oui-lookup/compare/v0.6.0...HEAD
+[0.6.0]: https://github.com/yabowarcherio/oui-lookup/compare/v0.5.0...v0.6.0
 [0.5.0]: https://github.com/yabowarcherio/oui-lookup/compare/v0.4.0...v0.5.0
 [0.4.0]: https://github.com/yabowarcherio/oui-lookup/compare/v0.3.0...v0.4.0
 [0.3.0]: https://github.com/yabowarcherio/oui-lookup/compare/v0.2.0...v0.3.0
