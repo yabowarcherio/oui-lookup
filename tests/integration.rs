@@ -201,3 +201,21 @@ fn vendor_accessors_match_parse_oui() {
         assert_eq!(v.octets(), [0xA4, 0x83, 0xE7]);
     }
 }
+
+#[test]
+fn vendor_with_suffix_resolves_back_to_same_vendor() {
+    use oui_lookup::{lookup_octets, lookup_vendor};
+    if let Some(v) = lookup_vendor("A4:83:E7") {
+        let mac = v.with_suffix([0xDE, 0xAD, 0xBE]);
+        // The synthesized MAC's OUI must resolve to the same vendor.
+        assert_eq!(lookup_octets(mac), Some(v.name.as_str()));
+    }
+}
+
+#[test]
+fn with_oui_round_trips_through_split() {
+    use oui_lookup::{split_mac48, with_oui_octets};
+    let m = [0xA4, 0x83, 0xE7, 0x11, 0x22, 0x33];
+    let (p, s) = split_mac48(m);
+    assert_eq!(with_oui_octets(p, s), m);
+}
