@@ -117,6 +117,12 @@ impl Vendor {
     pub fn oui(&self) -> u32 {
         mac::parse_oui(&self.prefix).unwrap_or(0)
     }
+
+    /// Build a full 48-bit MAC by appending a three-byte NIC suffix to this
+    /// vendor's prefix.
+    pub fn with_suffix(&self, suffix: [u8; 3]) -> [u8; 6] {
+        mac::with_oui_octets(self.octets(), suffix)
+    }
 }
 
 /// Look up the vendor name for a MAC address or OUI prefix.
@@ -489,6 +495,18 @@ mod tests {
         // Sorted and deduplicated.
         assert!(v.windows(2).all(|w| w[0] < w[1]));
     }
+    #[test]
+    fn vendor_with_suffix_builds_full_mac() {
+        let v = Vendor {
+            prefix: "A4:83:E7".to_string(),
+            name: "Apple, Inc.".to_string(),
+        };
+        assert_eq!(
+            v.with_suffix([0x11, 0x22, 0x33]),
+            [0xA4, 0x83, 0xE7, 0x11, 0x22, 0x33]
+        );
+    }
+
     #[test]
     fn vendor_from_oui_matches_lookup_vendor() {
         let oui = parse_oui("a4:83:e7").unwrap();
