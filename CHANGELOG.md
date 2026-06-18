@@ -6,6 +6,14 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+### Added
+
+- MAC composition helpers: `with_oui(u32, [u8; 3]) -> [u8; 6]`,
+  `with_oui_octets([u8; 3], [u8; 3]) -> [u8; 6]`, and `split_mac48` for the
+  inverse split. All `const fn`, no allocation.
+- `Vendor::with_suffix([u8; 3]) -> [u8; 6]` to build a MAC from a resolved
+  vendor.
+
 ## [0.6.0]
 
 ### Added
