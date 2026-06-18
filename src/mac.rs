@@ -521,6 +521,31 @@ pub const fn oui_to_octets(oui: u32) -> [u8; 3] {
     [(oui >> 16) as u8, (oui >> 8) as u8, oui as u8]
 }
 
+/// Build a 48-bit MAC by concatenating a 24-bit OUI with a three-byte
+/// NIC-specific suffix. The high byte of `oui` is ignored.
+#[inline]
+pub const fn with_oui(oui: u32, suffix: [u8; 3]) -> [u8; 6] {
+    let p = oui_to_octets(oui);
+    [p[0], p[1], p[2], suffix[0], suffix[1], suffix[2]]
+}
+
+/// Like [`with_oui`] but takes the prefix as three bytes — the natural form
+/// when you already hold an OUI as an octet triple.
+#[inline]
+pub const fn with_oui_octets(prefix: [u8; 3], suffix: [u8; 3]) -> [u8; 6] {
+    [prefix[0], prefix[1], prefix[2], suffix[0], suffix[1], suffix[2]]
+}
+
+/// Split a 48-bit MAC into its 24-bit OUI prefix and the three-byte
+/// NIC-specific suffix.
+#[inline]
+pub const fn split_mac48(octets: [u8; 6]) -> ([u8; 3], [u8; 3]) {
+    (
+        [octets[0], octets[1], octets[2]],
+        [octets[3], octets[4], octets[5]],
+    )
+}
+
 /// Pack three OUI bytes into the low 24 bits of a `u32`, most-significant
 /// first. Inverse of [`oui_to_octets`].
 #[inline]
@@ -852,6 +877,27 @@ mod tests {
         // Same prefix, different sub-byte: not VRRP.
         let other = parse_mac48("00:00:5e:00:02:01").unwrap();
         assert!(!is_vrrp(other));
+    }
+
+    #[test]
+    fn with_oui_concatenates_prefix_and_suffix() {
+        assert_eq!(
+            with_oui(0xA483E7, [0x11, 0x22, 0x33]),
+            [0xA4, 0x83, 0xE7, 0x11, 0x22, 0x33]
+        );
+        assert_eq!(
+            with_oui_octets([0xA4, 0x83, 0xE7], [0x11, 0x22, 0x33]),
+            with_oui(0xA483E7, [0x11, 0x22, 0x33])
+        );
+    }
+
+    #[test]
+    fn split_mac48_inverts_with_oui_octets() {
+        let m = parse_mac48("a4:83:e7:11:22:33").unwrap();
+        let (prefix, suffix) = split_mac48(m);
+        assert_eq!(prefix, [0xA4, 0x83, 0xE7]);
+        assert_eq!(suffix, [0x11, 0x22, 0x33]);
+        assert_eq!(with_oui_octets(prefix, suffix), m);
     }
 
     #[test]
