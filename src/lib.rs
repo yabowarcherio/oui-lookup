@@ -315,6 +315,46 @@ where
     macs.into_iter().map(lookup_octets).collect()
 }
 
+/// Drop any input whose OUI is unregistered (or unparseable), returning the
+/// remaining MAC strings in input order.
+///
+/// Convenient for trimming scan output to "things the registry can name".
+pub fn filter_known<I, S>(macs: I) -> Vec<String>
+where
+    I: IntoIterator<Item = S>,
+    S: AsRef<str>,
+{
+    macs.into_iter()
+        .filter_map(|m| {
+            let s = m.as_ref();
+            if is_registered(s) {
+                Some(s.to_string())
+            } else {
+                None
+            }
+        })
+        .collect()
+}
+
+/// Drop any input that doesn't parse as a MAC/OUI, regardless of whether the
+/// prefix is registered. Useful for sanitizing user input or external sources.
+pub fn filter_parseable<I, S>(macs: I) -> Vec<String>
+where
+    I: IntoIterator<Item = S>,
+    S: AsRef<str>,
+{
+    macs.into_iter()
+        .filter_map(|m| {
+            let s = m.as_ref();
+            if mac::parse_oui(s).is_ok() {
+                Some(s.to_string())
+            } else {
+                None
+            }
+        })
+        .collect()
+}
+
 /// Look up many MAC addresses at once, returning an owned [`Vendor`] per input.
 ///
 /// Like [`lookup_many`], but each element carries both the canonical prefix and
@@ -449,6 +489,24 @@ mod tests {
     #[test]
     fn entry_count_exposed() {
         assert_eq!(ENTRY_COUNT, db::ENTRY_COUNT);
+    }
+
+    #[test]
+    fn filter_known_drops_unregistered_and_garbage() {
+        let out = filter_known(["a4:83:e7:00:00:00", "FF:FF:FF:00:00:00", "garbage"]);
+        // The first might or might not match depending on the embedded
+        // snapshot, but the last two never resolve.
+        for s in &out {
+            assert!(is_registered(s), "{s} should be registered");
+        }
+        assert!(out.len() <= 1);
+    }
+
+    #[test]
+    fn filter_parseable_keeps_registered_and_unregistered() {
+        let out = filter_parseable(["a4:83:e7:00:00:00", "FF:FF:FF:00:00:00", "garbage"]);
+        // FF:FF:FF parses fine even though it's not registered.
+        assert_eq!(out.len(), 2);
     }
 
     #[test]
