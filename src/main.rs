@@ -86,6 +86,11 @@ struct Cli {
     #[arg(long)]
     unique: bool,
 
+    /// Drop inputs whose OUI is not in the embedded registry. Combine with
+    /// --vendor-only to get only the names that resolved.
+    #[arg(long, conflicts_with = "search")]
+    known_only: bool,
+
     /// Print the Modified EUI-64 identifier for each full MAC, then exit.
     #[arg(long, conflicts_with_all = ["json", "class", "vendor_only"])]
     eui64: bool,
@@ -268,6 +273,10 @@ fn main() -> ExitCode {
     if cli.unique {
         let mut seen = std::collections::HashSet::new();
         inputs.retain(|s| seen.insert(s.clone()));
+    }
+
+    if cli.known_only {
+        inputs.retain(|s| oui_lookup::is_registered(s));
     }
 
     let records: Vec<Record> = inputs.iter().map(|s| resolve(s)).collect();
