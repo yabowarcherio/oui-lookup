@@ -267,6 +267,26 @@ fn link_local_flag_outputs_fe80() {
 }
 
 #[test]
+fn known_only_filters_out_unregistered() {
+    let out = bin()
+        .args([
+            "--known-only",
+            "--vendor-only",
+            "a4:83:e7",
+            "FF:FF:FF:00:00:00",
+        ])
+        .output()
+        .unwrap();
+    assert!(out.status.success());
+    let s = String::from_utf8(out.stdout).unwrap();
+    // Only the registered prefix should appear; the unregistered FF:FF:FF
+    // line is dropped before any output is produced.
+    let lines: Vec<&str> = s.lines().filter(|l| !l.is_empty()).collect();
+    assert_eq!(lines.len(), 1);
+    assert!(!lines[0].is_empty());
+}
+
+#[test]
 fn ndjson_format_emits_one_object_per_line() {
     let out = bin()
         .args(["--format", "ndjson", "00:11:22", "FF:FF:FF:00:00:00"])

@@ -13,6 +13,9 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
   inverse split. All `const fn`, no allocation.
 - `Vendor::with_suffix([u8; 3]) -> [u8; 6]` to build a MAC from a resolved
   vendor.
+- Batch filters: `filter_known(macs)` keeps only those whose OUI is in the
+  registry; `filter_parseable(macs)` keeps only those that parse.
+- CLI `--known-only` drops inputs whose OUI is unregistered.
 
 ## [0.6.0]
 
