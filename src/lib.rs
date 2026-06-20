@@ -408,6 +408,14 @@ pub fn search(needle: &str) -> impl Iterator<Item = Entry> + '_ {
     entries().filter(move |e| e.name.to_ascii_lowercase().contains(&needle))
 }
 
+/// Iterate over every [`Entry`] whose vendor name **starts with** `prefix`,
+/// case-insensitively. Complements [`search`] (substring) and [`prefixes_for`]
+/// (exact).
+pub fn entries_starting_with(prefix: &str) -> impl Iterator<Item = Entry> + '_ {
+    let prefix = prefix.to_ascii_lowercase();
+    entries().filter(move |e| e.name.to_ascii_lowercase().starts_with(&prefix))
+}
+
 /// Find every OUI prefix registered to a vendor whose name matches `name`
 /// **exactly**, case-insensitively.
 ///
@@ -553,6 +561,26 @@ mod tests {
         // Sorted and deduplicated.
         assert!(v.windows(2).all(|w| w[0] < w[1]));
     }
+    #[test]
+    fn entries_starting_with_is_prefix_match() {
+        // Pick a real vendor and verify its prefix-search behavior.
+        if let Some(first) = entries().next() {
+            let name = first.name;
+            // Splitting on whitespace gives us a stable leading word.
+            let head: String = name.chars().take(3).collect();
+            if !head.is_empty() {
+                let all: Vec<_> = entries_starting_with(&head).collect();
+                assert!(!all.is_empty());
+                for e in &all {
+                    assert!(e
+                        .name
+                        .to_ascii_lowercase()
+                        .starts_with(&head.to_ascii_lowercase()));
+                }
+            }
+        }
+    }
+
     #[test]
     fn vendor_with_suffix_builds_full_mac() {
         let v = Vendor {
