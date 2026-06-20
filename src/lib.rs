@@ -306,6 +306,20 @@ where
     macs.into_iter().map(|m| lookup(m.as_ref())).collect()
 }
 
+/// Count how many inputs would resolve to a registered vendor via [`lookup`].
+///
+/// Equivalent to `lookup_many(macs).iter().filter(|o| o.is_some()).count()`
+/// but doesn't allocate the intermediate `Vec`.
+pub fn count_known<I, S>(macs: I) -> usize
+where
+    I: IntoIterator<Item = S>,
+    S: AsRef<str>,
+{
+    macs.into_iter()
+        .filter(|m| is_registered(m.as_ref()))
+        .count()
+}
+
 /// Look up many pre-parsed addresses at once, in input order. The octet
 /// equivalent of [`lookup_many`].
 pub fn lookup_octets_many<I>(macs: I) -> Vec<Option<&'static str>>
@@ -497,6 +511,13 @@ mod tests {
     #[test]
     fn entry_count_exposed() {
         assert_eq!(ENTRY_COUNT, db::ENTRY_COUNT);
+    }
+
+    #[test]
+    fn count_known_matches_lookup_many() {
+        let macs = ["a4:83:e7:00:00:00", "FF:FF:FF:00:00:00", "garbage"];
+        let by_lookup = lookup_many(macs).iter().filter(|o| o.is_some()).count();
+        assert_eq!(count_known(macs), by_lookup);
     }
 
     #[test]
