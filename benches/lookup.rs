@@ -52,6 +52,9 @@ fn bench_search(c: &mut Criterion) {
         b.iter(|| black_box(search(black_box("apple")).count()))
     });
     c.bench_function("iterate_all", |b| b.iter(|| black_box(entries().count())));
+    c.bench_function("top_vendors_10", |b| {
+        b.iter(|| black_box(oui_lookup::top_vendors(black_box(10)).len()))
+    });
 }
 
 criterion_group!(benches, bench_lookup, bench_search);
