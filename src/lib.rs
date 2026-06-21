@@ -48,6 +48,16 @@
 //! let mac = parse_mac48("ff:ff:ff:ff:ff:ff").unwrap();
 //! assert_eq!(classify(mac), MacKind::Broadcast);
 //! ```
+//!
+//! ## Fine-grained scope
+//!
+//! ```
+//! use oui_lookup::{parse_mac48, scope, MacScope};
+//! assert_eq!(
+//!     scope(parse_mac48("01:00:5e:00:00:01").unwrap()),
+//!     MacScope::Ipv4Multicast,
+//! );
+//! ```
 
 #![cfg_attr(docsrs, feature(doc_cfg))]
 #![forbid(unsafe_code)]
