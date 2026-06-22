@@ -593,6 +593,25 @@ mod tests {
         assert!(v.windows(2).all(|w| w[0] < w[1]));
     }
     #[test]
+    fn filters_keep_relative_order() {
+        let input = [
+            "FF:FF:FF:00:00:00",
+            "garbage",
+            "a4:83:e7:00:00:00",
+            "00:11:22:33:44:55",
+        ];
+        let parseable = filter_parseable(input);
+        // Order matches the input.
+        let mut iter = parseable.iter();
+        for s in input {
+            if mac::parse_oui(s).is_ok() {
+                assert_eq!(iter.next().map(|x| x.as_str()), Some(s));
+            }
+        }
+        assert!(iter.next().is_none());
+    }
+
+    #[test]
     fn entries_starting_with_is_prefix_match() {
         // Pick a real vendor and verify its prefix-search behavior.
         if let Some(first) = entries().next() {
