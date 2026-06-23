@@ -193,6 +193,31 @@ From the CLI:
 oui-lookup --solicited-node fe80::a483:e7ff:fe11:2233
 ```
 
+## Composing MACs and filtering inputs
+
+```rust
+use oui_lookup::{filter_known, lookup_vendor, split_mac48, with_oui_octets};
+
+// Build a MAC by concatenating a vendor prefix with a NIC suffix.
+let v = lookup_vendor("A4:83:E7").unwrap();
+let mac = v.with_suffix([0xDE, 0xAD, 0xBE]);
+assert_eq!(mac[0..3], [0xA4, 0x83, 0xE7]);
+
+// Split it back.
+let (oui, nic) = split_mac48(mac);
+assert_eq!(with_oui_octets(oui, nic), mac);
+
+// Trim a scan list to only known vendors.
+let known = filter_known(["a4:83:e7:00:00:00", "FF:FF:FF:00:00:00"]);
+assert!(known.len() <= 1);
+```
+
+From the CLI:
+
+```sh
+oui-lookup --known-only --vendor-only -i scan.txt
+```
+
 ## Address scope
 
 `MacScope` is a finer classification than `MacKind`: it picks out the well-known

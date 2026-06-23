@@ -6,6 +6,8 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+## [0.7.0]
+
 ### Added
 
 - MAC composition helpers: `with_oui(u32, [u8; 3]) -> [u8; 6]`,
@@ -15,6 +17,10 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
   vendor.
 - Batch filters: `filter_known(macs)` keeps only those whose OUI is in the
   registry; `filter_parseable(macs)` keeps only those that parse.
+- `count_known(macs)` returns the number of registered inputs without
+  allocating a result `Vec`.
+- `entries_starting_with(prefix)` complements `search`/`prefixes_for` with a
+  case-insensitive starts-with iterator.
 - CLI `--known-only` drops inputs whose OUI is unregistered.
 
 ## [0.6.0]
@@ -110,7 +116,8 @@ Initial release.
 - `serde` feature for deriving serde traits on the `Vendor` type.
 - Criterion benchmark for the lookup hot path.
 
-[Unreleased]: https://github.com/yabowarcherio/oui-lookup/compare/v0.6.0...HEAD
+[Unreleased]: https://github.com/yabowarcherio/oui-lookup/compare/v0.7.0...HEAD
+[0.7.0]: https://github.com/yabowarcherio/oui-lookup/compare/v0.6.0...v0.7.0
 [0.6.0]: https://github.com/yabowarcherio/oui-lookup/compare/v0.5.0...v0.6.0
 [0.5.0]: https://github.com/yabowarcherio/oui-lookup/compare/v0.4.0...v0.5.0
 [0.4.0]: https://github.com/yabowarcherio/oui-lookup/compare/v0.3.0...v0.4.0
