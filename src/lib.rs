@@ -465,6 +465,23 @@ pub fn vendor_block_count(name: &str) -> usize {
     prefixes_for(name).count()
 }
 
+/// Return the first OUI prefix registered to a vendor whose name matches
+/// `name` exactly (case-insensitively), or `None` if the vendor isn't
+/// registered.
+///
+/// Most organizations hold several blocks; this returns the lowest one in
+/// prefix order — handy when you only need "some OUI for this vendor" (e.g.
+/// to mint a fake MAC for a test fixture). Use [`prefixes_for`] if you need
+/// the full set.
+pub fn vendor_oui(name: &str) -> Option<u32> {
+    prefixes_for(name).next().map(|e| e.prefix)
+}
+
+/// Same as [`vendor_oui`] but returns the prefix as three octets.
+pub fn vendor_octets(name: &str) -> Option<[u8; 3]> {
+    vendor_oui(name).map(mac::oui_to_octets)
+}
+
 /// Return the `n` vendor names with the most OUI blocks in the embedded
 /// registry, in descending order of block count. Ties break by vendor name.
 ///
