@@ -219,3 +219,38 @@ fn with_oui_round_trips_through_split() {
     let (p, s) = split_mac48(m);
     assert_eq!(with_oui_octets(p, s), m);
 }
+
+#[test]
+fn vendor_oui_returns_first_in_prefix_order() {
+    use oui_lookup::{prefixes_for, vendor_oui};
+    if let Some(oui) = vendor_oui("Apple, Inc.") {
+        // The "first" prefix is the lowest one in numeric order — i.e. the
+        // first entry the matching iterator yields.
+        let first = prefixes_for("Apple, Inc.").next().unwrap();
+        assert_eq!(oui, first.prefix);
+    }
+}
+
+#[test]
+fn vendor_oui_is_case_insensitive() {
+    use oui_lookup::vendor_oui;
+    let a = vendor_oui("Apple, Inc.");
+    let b = vendor_oui("APPLE, INC.");
+    assert_eq!(a, b);
+}
+
+#[test]
+fn vendor_octets_matches_vendor_oui() {
+    use oui_lookup::{vendor_octets, vendor_oui};
+    if let (Some(oui), Some(octets)) = (vendor_oui("Apple, Inc."), vendor_octets("Apple, Inc.")) {
+        assert_eq!(oui >> 16 & 0xFF, octets[0] as u32);
+        assert_eq!(oui >> 8 & 0xFF, octets[1] as u32);
+        assert_eq!(oui & 0xFF, octets[2] as u32);
+    }
+}
+
+#[test]
+fn vendor_oui_unknown_is_none() {
+    use oui_lookup::vendor_oui;
+    assert_eq!(vendor_oui("nope ltd no such vendor"), None);
+}
