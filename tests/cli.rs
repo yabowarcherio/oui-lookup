@@ -351,6 +351,39 @@ fn scope_flag_classifies_specific_buckets() {
 }
 
 #[test]
+fn vendor_flag_lists_at_least_one_prefix() {
+    // We don't pin a specific vendor count, but Apple has many blocks and
+    // every line should look like a canonical OUI prefix.
+    let out = bin().args(["--vendor", "Apple, Inc."]).output().unwrap();
+    assert!(out.status.success(), "expected exit 0 for known vendor");
+    let s = String::from_utf8(out.stdout).unwrap();
+    let lines: Vec<&str> = s.lines().collect();
+    assert!(!lines.is_empty(), "expected at least one OUI for Apple");
+    for line in &lines {
+        // AA:BB:CC, uppercase hex.
+        assert_eq!(line.len(), 8, "bad prefix shape: {line}");
+        assert_eq!(&line[2..3], ":");
+        assert_eq!(&line[5..6], ":");
+        for (i, c) in line.chars().enumerate() {
+            if i == 2 || i == 5 {
+                continue;
+            }
+            assert!(c.is_ascii_hexdigit() && !c.is_ascii_lowercase(), "{line}");
+        }
+    }
+}
+
+#[test]
+fn vendor_flag_unknown_exits_one() {
+    let out = bin()
+        .args(["--vendor", "no such company definitely not registered"])
+        .output()
+        .unwrap();
+    assert_eq!(out.status.code(), Some(1));
+    assert!(out.stdout.is_empty());
+}
+
+#[test]
 fn format_bare_strips_separators() {
     // FF:FF:FF is guaranteed not to resolve to any registered vendor, which
     // keeps this test independent of the embedded registry snapshot.
