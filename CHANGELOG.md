@@ -6,6 +6,15 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+### Added
+
+- `vendor_oui(name)` and `vendor_octets(name)` for the common "give me any
+  OUI for this vendor" case — returns the lowest registered prefix in numeric
+  order. Use `prefixes_for(name)` for the full set.
+- CLI `--vendor NAME` prints every OUI prefix registered to an exact vendor
+  name (case-insensitive). Mirrors `prefixes_for` from the library; exits 1
+  when no prefix matches.
+
 ## [0.7.0]
 
 ### Added
