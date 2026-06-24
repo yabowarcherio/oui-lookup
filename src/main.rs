@@ -40,7 +40,7 @@ enum Format {
 )]
 struct Cli {
     /// MAC addresses or OUI prefixes to look up. Use `-` to read from stdin.
-    #[arg(value_name = "MAC", required_unless_present_any = ["count", "search", "input", "vendors"])]
+    #[arg(value_name = "MAC", required_unless_present_any = ["count", "search", "input", "vendors", "vendor"])]
     addrs: Vec<String>,
 
     /// Read addresses from a file, one per line (repeatable). Use `-` for
@@ -102,6 +102,11 @@ struct Cli {
     /// Print the top-N vendors by OUI-block count, then exit.
     #[arg(long, value_name = "N", exclusive = true)]
     stats: Option<usize>,
+
+    /// Print every OUI prefix registered to a vendor name (exact match,
+    /// case-insensitive) and exit. Use --search for substring matching.
+    #[arg(long, value_name = "NAME", exclusive = true)]
+    vendor: Option<String>,
 
     /// Print the canonical form of each full MAC, then exit.
     #[arg(long, conflicts_with_all = ["json", "class", "vendor_only", "eui64"])]
@@ -220,6 +225,19 @@ fn main() -> ExitCode {
             println!("{count}\t{name}");
         }
         return ExitCode::SUCCESS;
+    }
+
+    if let Some(name) = &cli.vendor {
+        let mut found = 0usize;
+        for e in oui_lookup::prefixes_for(name) {
+            println!("{}", e.prefix_str());
+            found += 1;
+        }
+        return if found > 0 {
+            ExitCode::SUCCESS
+        } else {
+            ExitCode::from(1)
+        };
     }
 
     if !cli.solicited_node.is_empty() {
