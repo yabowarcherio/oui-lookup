@@ -11,9 +11,14 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 - `vendor_oui(name)` and `vendor_octets(name)` for the common "give me any
   OUI for this vendor" case — returns the lowest registered prefix in numeric
   order. Use `prefixes_for(name)` for the full set.
+- `entries_between(start, end)` / `count_between(start, end)` iterate over
+  every entry whose OUI prefix falls in an inclusive range. Bounds are
+  order-insensitive; only the low 24 bits are significant.
 - CLI `--vendor NAME` prints every OUI prefix registered to an exact vendor
   name (case-insensitive). Mirrors `prefixes_for` from the library; exits 1
   when no prefix matches.
+- CLI `--prefix-range FROM..TO` lists every entry in an inclusive OUI range
+  as `OUI<TAB>VENDOR`.
 
 ## [0.7.0]
 
