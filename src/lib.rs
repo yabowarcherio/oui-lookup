@@ -510,6 +510,27 @@ pub fn entries() -> impl Iterator<Item = Entry> {
     (0..db::len()).filter_map(|i| db::entry(i).map(|(prefix, name)| Entry { prefix, name }))
 }
 
+/// Iterate over every entry whose OUI prefix falls in the inclusive range
+/// `start..=end`. Bounds may be passed in either order; only the low 24 bits
+/// of each are significant.
+///
+/// ```
+/// use oui_lookup::entries_between;
+/// // Every entry in the 00:00:00 – 00:00:FF (256-block) window.
+/// let n = entries_between(0x00_0000, 0x00_00FF).count();
+/// assert!(n <= 256);
+/// ```
+pub fn entries_between(start: u32, end: u32) -> impl Iterator<Item = Entry> {
+    let lo = (start & 0x00FF_FFFF).min(end & 0x00FF_FFFF);
+    let hi = (start & 0x00FF_FFFF).max(end & 0x00FF_FFFF);
+    entries().filter(move |e| e.prefix >= lo && e.prefix <= hi)
+}
+
+/// Convenience: count the entries in an inclusive OUI prefix range.
+pub fn count_between(start: u32, end: u32) -> usize {
+    entries_between(start, end).count()
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
