@@ -374,6 +374,42 @@ fn vendor_flag_lists_at_least_one_prefix() {
 }
 
 #[test]
+fn prefix_range_single_prefix_yields_one_row() {
+    // 00:00:00 has been registered to Xerox since the dawn of Ethernet, so
+    // a single-prefix range starting and ending at 00:00:00 must yield it.
+    let out = bin()
+        .args(["--prefix-range", "00:00:00..00:00:00"])
+        .output()
+        .unwrap();
+    assert!(out.status.success(), "stderr: {:?}", String::from_utf8_lossy(&out.stderr));
+    let s = String::from_utf8(out.stdout).unwrap();
+    let line = s.lines().next().unwrap();
+    let (prefix, vendor) = line.split_once('\t').unwrap();
+    assert_eq!(prefix, "00:00:00");
+    assert!(!vendor.is_empty());
+}
+
+#[test]
+fn prefix_range_bad_syntax_exits_two() {
+    let out = bin()
+        .args(["--prefix-range", "no-dots-here"])
+        .output()
+        .unwrap();
+    assert_eq!(out.status.code(), Some(2));
+    let err = String::from_utf8(out.stderr).unwrap();
+    assert!(err.contains("FROM..TO"), "stderr: {err}");
+}
+
+#[test]
+fn prefix_range_bad_endpoint_exits_two() {
+    let out = bin()
+        .args(["--prefix-range", "ZZ:ZZ:ZZ..00:00:00"])
+        .output()
+        .unwrap();
+    assert_eq!(out.status.code(), Some(2));
+}
+
+#[test]
 fn vendor_flag_unknown_exits_one() {
     let out = bin()
         .args(["--vendor", "no such company definitely not registered"])
