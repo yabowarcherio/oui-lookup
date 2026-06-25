@@ -40,7 +40,7 @@ enum Format {
 )]
 struct Cli {
     /// MAC addresses or OUI prefixes to look up. Use `-` to read from stdin.
-    #[arg(value_name = "MAC", required_unless_present_any = ["count", "search", "input", "vendors", "vendor"])]
+    #[arg(value_name = "MAC", required_unless_present_any = ["count", "search", "input", "vendors", "vendor", "prefix_range"])]
     addrs: Vec<String>,
 
     /// Read addresses from a file, one per line (repeatable). Use `-` for
@@ -107,6 +107,11 @@ struct Cli {
     /// case-insensitive) and exit. Use --search for substring matching.
     #[arg(long, value_name = "NAME", exclusive = true)]
     vendor: Option<String>,
+
+    /// List every entry whose OUI prefix falls in `FROM..TO` (inclusive,
+    /// `AA:BB:CC..DD:EE:FF`). Output is `OUI<TAB>VENDOR`.
+    #[arg(long, value_name = "FROM..TO", exclusive = true)]
+    prefix_range: Option<String>,
 
     /// Print the canonical form of each full MAC, then exit.
     #[arg(long, conflicts_with_all = ["json", "class", "vendor_only", "eui64"])]
@@ -231,6 +236,37 @@ fn main() -> ExitCode {
         let mut found = 0usize;
         for e in oui_lookup::prefixes_for(name) {
             println!("{}", e.prefix_str());
+            found += 1;
+        }
+        return if found > 0 {
+            ExitCode::SUCCESS
+        } else {
+            ExitCode::from(1)
+        };
+    }
+
+    if let Some(spec) = &cli.prefix_range {
+        let Some((lo_s, hi_s)) = spec.split_once("..") else {
+            eprintln!("oui-lookup: --prefix-range expected FROM..TO, got {spec:?}");
+            return ExitCode::from(2);
+        };
+        let lo = match parse_oui(lo_s.trim()) {
+            Ok(v) => v,
+            Err(err) => {
+                eprintln!("oui-lookup: bad range start {lo_s:?}: {err}");
+                return ExitCode::from(2);
+            }
+        };
+        let hi = match parse_oui(hi_s.trim()) {
+            Ok(v) => v,
+            Err(err) => {
+                eprintln!("oui-lookup: bad range end {hi_s:?}: {err}");
+                return ExitCode::from(2);
+            }
+        };
+        let mut found = 0usize;
+        for e in oui_lookup::entries_between(lo, hi) {
+            println!("{}\t{}", e.prefix_str(), e.name);
             found += 1;
         }
         return if found > 0 {
