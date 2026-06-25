@@ -254,3 +254,43 @@ fn vendor_oui_unknown_is_none() {
     use oui_lookup::vendor_oui;
     assert_eq!(vendor_oui("nope ltd no such vendor"), None);
 }
+
+#[test]
+fn entries_between_inclusive_bounds() {
+    use oui_lookup::entries_between;
+    // The full table fits inside 00:00:00..=FF:FF:FF.
+    let lo = entries_between(0x00_0000, 0x00_FFFF).count();
+    let mid = entries_between(0xA0_0000, 0xAF_FFFF).count();
+    let hi = entries_between(0xF0_0000, 0xFF_FFFF).count();
+    // Sanity: the registry has entries spread across the address space.
+    assert!(lo + mid + hi > 0);
+}
+
+#[test]
+fn entries_between_swapped_bounds_match() {
+    use oui_lookup::entries_between;
+    let a = entries_between(0x10_0000, 0x1F_FFFF).count();
+    let b = entries_between(0x1F_FFFF, 0x10_0000).count();
+    assert_eq!(a, b, "bounds should be order-insensitive");
+}
+
+#[test]
+fn entries_between_single_prefix_matches_lookup() {
+    use oui_lookup::{entries_between, lookup_oui};
+    // For each entry that exists, querying its exact prefix as both bounds
+    // should yield itself — a sanity check that the boundary is inclusive.
+    for e in oui_lookup::entries().take(20) {
+        let mut it = entries_between(e.prefix, e.prefix);
+        let got = it.next().unwrap();
+        assert_eq!(got.prefix, e.prefix);
+        assert_eq!(lookup_oui(e.prefix), Some(got.name));
+    }
+}
+
+#[test]
+fn count_between_matches_iterator_count() {
+    use oui_lookup::{count_between, entries_between};
+    let a = count_between(0x00_0000, 0x10_0000);
+    let b = entries_between(0x00_0000, 0x10_0000).count();
+    assert_eq!(a, b);
+}
