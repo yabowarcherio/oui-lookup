@@ -40,7 +40,7 @@ enum Format {
 )]
 struct Cli {
     /// MAC addresses or OUI prefixes to look up. Use `-` to read from stdin.
-    #[arg(value_name = "MAC", required_unless_present_any = ["count", "search", "input", "vendors", "vendor", "prefix_range"])]
+    #[arg(value_name = "MAC", required_unless_present_any = ["count", "search", "input", "vendors", "vendor", "prefix_range", "from_eui64"])]
     addrs: Vec<String>,
 
     /// Read addresses from a file, one per line (repeatable). Use `-` for
@@ -112,6 +112,12 @@ struct Cli {
     /// `AA:BB:CC..DD:EE:FF`). Output is `OUI<TAB>VENDOR`.
     #[arg(long, value_name = "FROM..TO", exclusive = true)]
     prefix_range: Option<String>,
+
+    /// For each Modified EUI-64 identifier (8 bytes, any separator), recover
+    /// the underlying 48-bit MAC and print `MAC<TAB>VENDOR` (vendor empty when
+    /// unregistered). Exits 2 if any EUI lacks the `FF:FE` marker.
+    #[arg(long, value_name = "EUI64", exclusive = true, num_args = 1..)]
+    from_eui64: Vec<String>,
 
     /// Print the canonical form of each full MAC, then exit.
     #[arg(long, conflicts_with_all = ["json", "class", "vendor_only", "eui64"])]
@@ -242,6 +248,38 @@ fn main() -> ExitCode {
             ExitCode::SUCCESS
         } else {
             ExitCode::from(1)
+        };
+    }
+
+    if !cli.from_eui64.is_empty() {
+        let mut bad = false;
+        for s in &cli.from_eui64 {
+            match oui_lookup::parse_eui64(s) {
+                Ok(eui) => match oui_lookup::eui64_to_mac(eui) {
+                    Some(mac) => {
+                        let mac_s = if cli.lower {
+                            oui_lookup::format_mac48_lower(mac)
+                        } else {
+                            oui_lookup::format_mac48(mac)
+                        };
+                        let vendor = oui_lookup::lookup_octets(mac).unwrap_or("");
+                        println!("{mac_s}\t{vendor}");
+                    }
+                    None => {
+                        eprintln!("oui-lookup: {s:?}: not derived from a 48-bit MAC (missing FF:FE marker)");
+                        bad = true;
+                    }
+                },
+                Err(err) => {
+                    eprintln!("oui-lookup: {s:?}: {err}");
+                    bad = true;
+                }
+            }
+        }
+        return if bad {
+            ExitCode::from(2)
+        } else {
+            ExitCode::SUCCESS
         };
     }
 
