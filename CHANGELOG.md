@@ -19,6 +19,12 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
   when no prefix matches.
 - CLI `--prefix-range FROM..TO` lists every entry in an inclusive OUI range
   as `OUI<TAB>VENDOR`.
+- `parse_eui64` parses a 64-bit identifier from any spelling, mirroring
+  `parse_mac48` for 16-digit inputs.
+- `lookup_eui64(eui)` recovers the embedded MAC and looks up its vendor —
+  the EUI-64 sibling of `lookup_link_local`.
+- CLI `--from-eui64` recovers and labels a MAC from each Modified EUI-64
+  identifier. Exits 2 when the input lacks the `FF:FE` marker.
 
 ## [0.7.0]
 
