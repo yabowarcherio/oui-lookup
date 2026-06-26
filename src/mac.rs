@@ -392,6 +392,33 @@ pub fn parse_mac48(input: &str) -> Result<[u8; 6], ParseMacError> {
     Ok(octets)
 }
 
+/// Parse a 64-bit Modified EUI-64 identifier from any common spelling
+/// (`AA:BB:CC:DD:EE:FF:00:11`, hyphens, dots, bare, whitespace).
+///
+/// Like [`parse_mac48`] but for 16 hex digits instead of 12.
+pub fn parse_eui64(input: &str) -> Result<[u8; 8], ParseMacError> {
+    let mut octets = [0u8; 8];
+    let mut digits = 0usize;
+
+    for c in input.chars() {
+        if is_separator(c) {
+            continue;
+        }
+        let v = hex_val(c).ok_or(ParseMacError::InvalidChar(c))? as u8;
+        if digits >= 16 {
+            return Err(ParseMacError::TooLong);
+        }
+        let idx = digits / 2;
+        octets[idx] = (octets[idx] << 4) | v;
+        digits += 1;
+    }
+
+    if digits < 16 {
+        return Err(ParseMacError::TooShort);
+    }
+    Ok(octets)
+}
+
 /// Convert a 48-bit MAC address to its Modified EUI-64 interface identifier,
 /// as used when forming IPv6 link-local addresses (RFC 4291). The `FF:FE` is
 /// inserted in the middle and the universal/local bit is flipped.
