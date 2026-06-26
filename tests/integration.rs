@@ -256,6 +256,50 @@ fn vendor_oui_unknown_is_none() {
 }
 
 #[test]
+fn lookup_eui64_round_trips_via_to_eui64() {
+    use oui_lookup::{lookup_eui64, lookup_octets, to_eui64};
+    let mac = [0xA4, 0x83, 0xE7, 0x11, 0x22, 0x33];
+    let eui = to_eui64(mac);
+    assert_eq!(lookup_eui64(eui), lookup_octets(mac));
+}
+
+#[test]
+fn lookup_eui64_rejects_non_mac_derived_input() {
+    use oui_lookup::lookup_eui64;
+    // No FF:FE marker — must be None even if the OUI hits a registered block.
+    let no_ffee = [0x02, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00];
+    assert_eq!(lookup_eui64(no_ffee), None);
+}
+
+#[test]
+fn parse_eui64_accepts_common_spellings() {
+    use oui_lookup::parse_eui64;
+    let want = [0xA6, 0x83, 0xE7, 0xFF, 0xFE, 0x11, 0x22, 0x33];
+    for s in [
+        "A6:83:E7:FF:FE:11:22:33",
+        "a6-83-e7-ff-fe-11-22-33",
+        "a683.e7ff.fe11.2233",
+        "a683e7fffe112233",
+    ] {
+        assert_eq!(parse_eui64(s).unwrap(), want, "{s}");
+    }
+}
+
+#[test]
+fn parse_eui64_rejects_short_long_garbage() {
+    use oui_lookup::{parse_eui64, ParseMacError};
+    assert_eq!(parse_eui64("a4:83").unwrap_err(), ParseMacError::TooShort);
+    assert_eq!(
+        parse_eui64("a683e7fffe1122334455").unwrap_err(),
+        ParseMacError::TooLong
+    );
+    matches!(
+        parse_eui64("a683e7fffe11223Z").unwrap_err(),
+        ParseMacError::InvalidChar('Z')
+    );
+}
+
+#[test]
 fn entries_between_inclusive_bounds() {
     use oui_lookup::entries_between;
     // The full table fits inside 00:00:00..=FF:FF:FF.
