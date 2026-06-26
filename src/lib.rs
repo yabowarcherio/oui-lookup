@@ -265,6 +265,18 @@ pub fn lookup_link_local(addr: std::net::Ipv6Addr) -> Option<&'static str> {
     lookup_octets(mac)
 }
 
+/// Look up the vendor of a Modified EUI-64 interface identifier by recovering
+/// the embedded MAC.
+///
+/// Returns `None` if `eui` doesn't carry the `FF:FE` marker inserted by
+/// [`to_eui64`] (i.e. it wasn't derived from a 48-bit MAC) or the recovered
+/// MAC's OUI is unregistered. This is the EUI-64 sibling of
+/// [`lookup_link_local`].
+pub fn lookup_eui64(eui: [u8; 8]) -> Option<&'static str> {
+    let mac = mac::eui64_to_mac(eui)?;
+    lookup_octets(mac)
+}
+
 /// The number of distinct vendor names in the embedded registry — typically
 /// smaller than [`ENTRY_COUNT`] because most organizations hold several blocks.
 pub fn total_vendors() -> usize {
