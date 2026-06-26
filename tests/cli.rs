@@ -374,6 +374,33 @@ fn vendor_flag_lists_at_least_one_prefix() {
 }
 
 #[test]
+fn from_eui64_round_trips_with_eui64() {
+    // First derive an EUI-64 from a known MAC, then feed it back.
+    let derive = bin().args(["--eui64", "a4:83:e7:11:22:33"]).output().unwrap();
+    assert!(derive.status.success());
+    let eui = String::from_utf8(derive.stdout).unwrap().trim().to_string();
+    assert!(!eui.is_empty());
+
+    let recover = bin().args(["--from-eui64", &eui]).output().unwrap();
+    assert!(recover.status.success(), "stderr={:?}", String::from_utf8_lossy(&recover.stderr));
+    let line = String::from_utf8(recover.stdout).unwrap();
+    let (mac, _vendor) = line.trim().split_once('\t').unwrap();
+    assert_eq!(mac, "A4:83:E7:11:22:33");
+}
+
+#[test]
+fn from_eui64_rejects_non_mac_derived_eui_with_exit_two() {
+    // An EUI with all zeros has no FF:FE marker.
+    let out = bin()
+        .args(["--from-eui64", "00:00:00:00:00:00:00:00"])
+        .output()
+        .unwrap();
+    assert_eq!(out.status.code(), Some(2));
+    let err = String::from_utf8(out.stderr).unwrap();
+    assert!(err.contains("FF:FE"), "stderr: {err}");
+}
+
+#[test]
 fn prefix_range_single_prefix_yields_one_row() {
     // 00:00:00 has been registered to Xerox since the dawn of Ethernet, so
     // a single-prefix range starting and ending at 00:00:00 must yield it.
