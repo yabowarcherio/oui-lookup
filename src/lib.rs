@@ -342,6 +342,20 @@ where
         .count()
 }
 
+/// Count how many inputs successfully parse as a MAC or OUI prefix,
+/// independent of whether the prefix is registered.
+///
+/// The non-allocating sibling of [`filter_parseable`].
+pub fn count_parseable<I, S>(macs: I) -> usize
+where
+    I: IntoIterator<Item = S>,
+    S: AsRef<str>,
+{
+    macs.into_iter()
+        .filter(|m| mac::parse_oui(m.as_ref()).is_ok())
+        .count()
+}
+
 /// Look up many pre-parsed addresses at once, in input order. The octet
 /// equivalent of [`lookup_many`].
 pub fn lookup_octets_many<I>(macs: I) -> Vec<Option<&'static str>>
