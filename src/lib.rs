@@ -440,6 +440,27 @@ impl Entry {
     pub fn octets(&self) -> [u8; 3] {
         mac::oui_to_octets(self.prefix)
     }
+
+    /// Whether the vendor name contains `needle`, case-insensitively.
+    ///
+    /// Convenience for filtering iterators: `entries().filter(|e| e.matches("apple"))`.
+    pub fn matches(&self, needle: &str) -> bool {
+        // ASCII-only fold is plenty for the registry; vendor names there are
+        // ASCII or already canonicalized.
+        if needle.is_empty() {
+            return true;
+        }
+        let name = self.name.as_bytes();
+        let needle = needle.as_bytes();
+        if needle.len() > name.len() {
+            return false;
+        }
+        name.windows(needle.len()).any(|w| {
+            w.iter()
+                .zip(needle.iter())
+                .all(|(a, b)| a.eq_ignore_ascii_case(b))
+        })
+    }
 }
 
 impl std::fmt::Display for Entry {
