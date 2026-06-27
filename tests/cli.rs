@@ -374,6 +374,26 @@ fn vendor_flag_lists_at_least_one_prefix() {
 }
 
 #[test]
+fn tally_reports_total_parseable_known() {
+    // Total 4: a4:83:e7 (known), FF:FF:FF (parseable, unknown), garbage
+    // (unparseable), 00:11:22 (known).
+    let out = bin()
+        .args(["--tally", "a4:83:e7", "FF:FF:FF", "garbage", "00:11:22"])
+        .output()
+        .unwrap();
+    assert!(out.status.success());
+    let s = String::from_utf8(out.stdout).unwrap();
+    let cells: Vec<_> = s.trim().split('\t').collect();
+    assert_eq!(cells.len(), 3);
+    assert_eq!(cells[0], "4", "total");
+    assert_eq!(cells[1], "3", "parseable");
+    let known: usize = cells[2].parse().unwrap();
+    // The exact "known" count depends on the embedded snapshot, but both
+    // a4:83:e7 and 00:11:22 are perennial registrations.
+    assert!(known >= 1 && known <= 4, "known count out of range: {known}");
+}
+
+#[test]
 fn from_eui64_round_trips_with_eui64() {
     // First derive an EUI-64 from a known MAC, then feed it back.
     let derive = bin().args(["--eui64", "a4:83:e7:11:22:33"]).output().unwrap();
