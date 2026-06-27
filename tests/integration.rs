@@ -338,3 +338,35 @@ fn count_between_matches_iterator_count() {
     let b = entries_between(0x00_0000, 0x10_0000).count();
     assert_eq!(a, b);
 }
+
+#[test]
+fn count_parseable_matches_filter_parseable_len() {
+    use oui_lookup::{count_parseable, filter_parseable};
+    let inputs = [
+        "a4:83:e7:00:00:00",
+        "FF:FF:FF:00:00:00",
+        "garbage",
+        "00:11:22",
+        "00:11:2g",
+    ];
+    assert_eq!(count_parseable(inputs), filter_parseable(inputs).len());
+}
+
+#[test]
+fn entry_matches_is_case_insensitive_substring() {
+    use oui_lookup::entries;
+    let first = entries().find(|e| e.matches("apple")).unwrap();
+    assert!(first.matches("APPLE"));
+    assert!(first.matches("appl"));
+    assert!(!first.matches("definitely-not-a-vendor"));
+    // Empty needle matches everything.
+    assert!(first.matches(""));
+}
+
+#[test]
+fn entry_matches_agrees_with_search() {
+    use oui_lookup::{entries, search};
+    let n_search = search("xerox").count();
+    let n_manual = entries().filter(|e| e.matches("xerox")).count();
+    assert_eq!(n_search, n_manual);
+}
