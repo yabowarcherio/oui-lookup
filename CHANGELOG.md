@@ -25,6 +25,12 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
   the EUI-64 sibling of `lookup_link_local`.
 - CLI `--from-eui64` recovers and labels a MAC from each Modified EUI-64
   identifier. Exits 2 when the input lacks the `FF:FE` marker.
+- `count_parseable` returns the number of inputs that parse as a MAC/OUI,
+  matching `filter_parseable` without the allocation.
+- `Entry::matches(needle)` exposes a case-insensitive substring predicate
+  for filter chains.
+- CLI `--tally` prints `total<TAB>parseable<TAB>known` over the resolved
+  input list, for batch sanitization pipelines.
 
 ## [0.7.0]
 
