@@ -141,6 +141,12 @@ struct Cli {
     /// With --normalize/--eui64 output, use the lower-case colon form.
     #[arg(long)]
     lower: bool,
+
+    /// Print "total<TAB>parseable<TAB>known" and exit. Each tally is computed
+    /// once over the resolved input list; useful for batch sanitization
+    /// pipelines.
+    #[arg(long, conflicts_with_all = ["json", "class", "vendor_only", "eui64", "normalize", "link_local", "scope"])]
+    tally: bool,
 }
 
 /// One resolved (or unresolved) lookup result.
@@ -369,6 +375,14 @@ fn main() -> ExitCode {
 
     if cli.known_only {
         inputs.retain(|s| oui_lookup::is_registered(s));
+    }
+
+    if cli.tally {
+        let total = inputs.len();
+        let parseable = oui_lookup::count_parseable(&inputs);
+        let known = oui_lookup::count_known(&inputs);
+        println!("{total}\t{parseable}\t{known}");
+        return ExitCode::SUCCESS;
     }
 
     let records: Vec<Record> = inputs.iter().map(|s| resolve(s)).collect();
