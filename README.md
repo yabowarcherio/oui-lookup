@@ -262,7 +262,7 @@ assert_eq!(oui_to_octets(0xA483E7), [0xA4, 0x83, 0xE7]);
 ## Searching and iterating
 
 ```rust
-use oui_lookup::{search, entries};
+use oui_lookup::{search, entries, entries_between, vendor_oui};
 
 // Find every OUI registered to a vendor (case-insensitive substring).
 for e in search("raspberry") {
@@ -272,13 +272,21 @@ for e in search("raspberry") {
 // Or walk the entire embedded table.
 let total = entries().count();
 assert!(total > 10_000);
+
+// Restrict to an inclusive OUI range.
+let in_window = entries_between(0xA0_0000, 0xAF_FFFF).count();
+
+// Resolve an exact vendor name to its lowest registered OUI.
+let _ = vendor_oui("Apple, Inc.");
 ```
 
 From the CLI:
 
 ```sh
 oui-lookup --search "raspberry pi"
-oui-lookup --count          # how many OUIs are embedded
+oui-lookup --count                                  # how many OUIs are embedded
+oui-lookup --vendor "Apple, Inc."                   # every OUI for an exact vendor
+oui-lookup --prefix-range "A0:00:00..AF:FF:FF"      # entries in an OUI window
 ```
 
 ## Quick counts
