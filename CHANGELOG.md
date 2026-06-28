@@ -31,6 +31,10 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
   for filter chains.
 - CLI `--tally` prints `total<TAB>parseable<TAB>known` over the resolved
   input list, for batch sanitization pipelines.
+- Bench coverage for `entries_between` (narrow and wide windows) and
+  `vendor_oui`.
+- README sections covering `--vendor`, `--prefix-range`, `--tally`, and the
+  underlying library calls.
 
 ## [0.7.0]
 
