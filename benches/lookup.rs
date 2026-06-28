@@ -55,6 +55,23 @@ fn bench_search(c: &mut Criterion) {
     c.bench_function("top_vendors_10", |b| {
         b.iter(|| black_box(oui_lookup::top_vendors(black_box(10)).len()))
     });
+    c.bench_function("entries_between_narrow", |b| {
+        b.iter(|| {
+            black_box(
+                oui_lookup::entries_between(black_box(0xA0_0000), black_box(0xAF_FFFF)).count(),
+            )
+        })
+    });
+    c.bench_function("entries_between_wide", |b| {
+        b.iter(|| {
+            black_box(
+                oui_lookup::entries_between(black_box(0x00_0000), black_box(0xFF_FFFF)).count(),
+            )
+        })
+    });
+    c.bench_function("vendor_oui_lookup", |b| {
+        b.iter(|| black_box(oui_lookup::vendor_oui(black_box("Apple, Inc."))))
+    });
 }
 
 criterion_group!(benches, bench_lookup, bench_search);
