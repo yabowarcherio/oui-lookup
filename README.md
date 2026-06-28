@@ -292,7 +292,7 @@ oui-lookup --prefix-range "A0:00:00..AF:FF:FF"      # entries in an OUI window
 ## Quick counts
 
 ```rust
-use oui_lookup::{count_matching, lookup_entry};
+use oui_lookup::{count_known, count_matching, count_parseable, lookup_entry};
 
 let apple_blocks = count_matching("apple");
 println!("Apple holds {apple_blocks} OUI blocks");
@@ -300,6 +300,21 @@ println!("Apple holds {apple_blocks} OUI blocks");
 if let Some(e) = lookup_entry("a4:83:e7:00:00:00") {
     println!("{}", e); // "A4:83:E7  Apple, Inc."
 }
+
+// Tally a scan list without allocating any intermediate Vec.
+let inputs = ["a4:83:e7:00:00:00", "FF:FF:FF:00:00:00", "garbage"];
+let (total, parseable, known) = (
+    inputs.len(),
+    count_parseable(inputs),
+    count_known(inputs),
+);
+println!("{total}\t{parseable}\t{known}");
+```
+
+From the CLI:
+
+```sh
+oui-lookup --tally < scan.txt   # "total\tparseable\tknown"
 ```
 
 ## How the data is embedded
