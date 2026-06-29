@@ -6,6 +6,8 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+## [0.8.0]
+
 ### Added
 
 - `vendor_oui(name)` and `vendor_octets(name)` for the common "give me any
