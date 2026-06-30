@@ -72,8 +72,8 @@ pub use mac::{
     is_broadcast, is_ipv4_multicast, is_ipv6_multicast, is_locally_administered, is_multicast,
     is_pause, is_stp_bpdu, is_unicast, is_vrrp, is_zero, link_local_ipv6, mac_from_link_local,
     octets_to_oui, oui_to_octets, parse_eui64, parse_mac48, parse_oui, scope, solicited_node_mac,
-    split_mac48, to_eui64, with_oui, with_oui_octets, BRIDGE_PROTOCOL_PREFIX,
-    IPV4_MULTICAST_PREFIX, IPV6_MULTICAST_PREFIX, MacKind, MacScope, ParseMacError, VRRP_PREFIX,
+    split_mac48, to_eui64, with_oui, with_oui_octets, MacKind, MacScope, ParseMacError,
+    BRIDGE_PROTOCOL_PREFIX, IPV4_MULTICAST_PREFIX, IPV6_MULTICAST_PREFIX, VRRP_PREFIX,
 };
 
 /// The number of OUI prefixes embedded in this build of the crate.
@@ -280,8 +280,7 @@ pub fn lookup_eui64(eui: [u8; 8]) -> Option<&'static str> {
 /// The number of distinct vendor names in the embedded registry — typically
 /// smaller than [`ENTRY_COUNT`] because most organizations hold several blocks.
 pub fn total_vendors() -> usize {
-    let mut seen: std::collections::HashSet<&'static str> =
-        std::collections::HashSet::new();
+    let mut seen: std::collections::HashSet<&'static str> = std::collections::HashSet::new();
     for e in entries() {
         seen.insert(e.name);
     }
@@ -732,7 +731,10 @@ mod tests {
     fn vendor_from_oui_matches_lookup_vendor() {
         let oui = parse_oui("a4:83:e7").unwrap();
         assert_eq!(Vendor::from_oui(oui), lookup_vendor("a4:83:e7"));
-        assert_eq!(Vendor::from_octets([0xA4, 0x83, 0xE7]), Vendor::from_oui(oui));
+        assert_eq!(
+            Vendor::from_octets([0xA4, 0x83, 0xE7]),
+            Vendor::from_oui(oui)
+        );
         assert!(Vendor::from_oui(0xFFFFFF).is_none());
     }
 

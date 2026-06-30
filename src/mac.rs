@@ -560,7 +560,9 @@ pub const fn with_oui(oui: u32, suffix: [u8; 3]) -> [u8; 6] {
 /// when you already hold an OUI as an octet triple.
 #[inline]
 pub const fn with_oui_octets(prefix: [u8; 3], suffix: [u8; 3]) -> [u8; 6] {
-    [prefix[0], prefix[1], prefix[2], suffix[0], suffix[1], suffix[2]]
+    [
+        prefix[0], prefix[1], prefix[2], suffix[0], suffix[1], suffix[2],
+    ]
 }
 
 /// Split a 48-bit MAC into its 24-bit OUI prefix and the three-byte
