@@ -7,6 +7,8 @@
 
 **Fast, offline MAC-address vendor (OUI) lookup — as a Rust library and a CLI.**
 
+Powers the OUI-resolution path of [netscan-core](https://github.com/yabowarcherio/netscan-core).
+
 The entire IEEE MA-L registry is compiled straight into the binary, so there
 are **no network calls, no cache files, and no runtime dependencies**. A lookup
 is an allocation-free binary search over data borrowed directly from the
