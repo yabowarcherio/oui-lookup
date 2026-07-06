@@ -26,6 +26,12 @@ cargo build --no-default-features        # library-only must still build
 cargo deny check                         # licenses & advisories (if installed)
 ```
 
+Doc-tests too:
+
+```sh
+cargo test --doc --all-features
+```
+
 ## Updating the OUI database
 
 The IEEE registry snapshot lives in `data/oui.tsv.gz` and is **vendored on
