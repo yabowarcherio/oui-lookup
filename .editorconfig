@@ -12,3 +12,7 @@ indent_size = 4
 
 [*.{yml,yaml,toml}]
 indent_size = 2
+
+# Force LF line endings for cross-platform consistency.
+[*]
+end_of_line = lf
