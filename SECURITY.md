@@ -13,4 +13,5 @@ dependency — please include the dependency and version in your report.
 
 ## Supported versions
 
-The latest released `0.x` line receives fixes.
+The latest released `0.x` line receives fixes. We aim for a first reply within
+five business days.
