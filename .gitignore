@@ -4,3 +4,8 @@
 
 # Cargo.lock IS committed: this crate ships a binary, so a locked, reproducible
 # build is desirable. (Do not add Cargo.lock here.)
+# Editor scratch files.
+*.swp
+*.tmp
+.vscode/
+.idea/
